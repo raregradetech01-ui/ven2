@@ -968,10 +968,7 @@
             </div>
         </div>
         <div id="menuGrid" class="menu-grid">
-            <div class="empty-state" style="grid-column:1/-1;">
-                <i data-lucide="loader-2" style="width:44px;height:44px;display:block;margin:0 auto 12px;animation:spin 1s linear infinite;"></i>
-                Loading menu items…
-            </div>
+            <!-- Dynamically populated -->
         </div>
     </section>
 
@@ -1006,7 +1003,7 @@
                     <h2><i data-lucide="package" style="width:18px;height:18px;color:var(--dim);"></i> All Items — Toggle Featured</h2>
                 </div>
                 <div id="featuredToggleList" style="padding:16px;max-height:400px;overflow-y:auto;">
-                    <div style="color:var(--dim);text-align:center;padding:20px;font-size:0.88rem;">Loading…</div>
+                    <!-- Dynamically populated -->
                 </div>
             </div>
         </div>
@@ -1019,7 +1016,7 @@
                 <div style="background:linear-gradient(135deg,#0d1f14,#0a2e1a);border-radius:20px;padding:24px;color:white;">
                     <div style="font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.5);margin-bottom:12px;font-weight:700;">⭐ Featured Dishes</div>
                     <div id="featuredPreviewCards" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;">
-                        <div style="color:rgba(255,255,255,0.4);font-size:0.88rem;padding:20px;">No featured items to preview</div>
+                        <!-- Dynamically populated -->
                     </div>
                 </div>
             </div>
@@ -1842,54 +1839,546 @@ function renderAnalytics() {
     renderPricingBreakdown();
 }
 
-function renderCategoryBreakdown() { /* original */ }
-function renderOrdersChart() { /* original */ }
-function renderPricingBreakdown() { /* original */ }
-function getLast6Months() { /* original */ }
+function renderCategoryBreakdown() {
+    const items = Object.values(menuCache);
+    const cats = {};
+    items.forEach(v => { const c = v.category || 'Other'; cats[c] = (cats[c]||0) + 1; });
+    const el = document.getElementById('categoryBreakdown');
+    if (!Object.keys(cats).length) { el.innerHTML = '<p style="color:var(--dim);text-align:center;padding:20px;">No items yet</p>'; return; }
+    const total = items.length;
+    el.innerHTML = Object.entries(cats).sort((a,b) => b[1]-a[1]).map(([cat, count]) => {
+        const pct = Math.round((count/total)*100);
+        return `
+        <div style="margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:600;margin-bottom:6px;">
+                <span>${cat}</span><span>${count} item${count!==1?'s':''} (${pct}%)</span>
+            </div>
+            <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;">
+                <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--accent),#34d672);border-radius:4px;transition:width 0.8s ease;"></div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderOrdersChart() {
+    const orders = Object.values(ordersCache);
+    const months = getLast6Months();
+    const counts = {};
+    months.forEach(m => counts[m] = 0);
+    orders.forEach(o => {
+        if (o.createdAt) {
+            const k = new Date(o.createdAt).toLocaleDateString('en-ZA',{month:'short',year:'2-digit'});
+            if (k in counts) counts[k]++;
+        }
+    });
+    const vals = months.map(m => counts[m]);
+    const maxV = Math.max(...vals, 1);
+    const container = document.getElementById('ordersChart');
+    container.innerHTML = months.map((m, i) => {
+        const h = Math.max(Math.round((vals[i]/maxV)*170), vals[i] > 0 ? 8 : 4);
+        return `<div class="bar-wrapper">
+            <div class="bar" style="height:${h}px;"><div class="bar-val">${vals[i]}</div></div>
+            <div class="bar-label">${m}</div>
+        </div>`;
+    }).join('');
+}
+
+function renderPricingBreakdown() {
+    const items = Object.values(menuCache);
+    const el = document.getElementById('pricingBreakdown');
+    if (!items.length) { el.innerHTML = '<p style="color:var(--dim);text-align:center;padding:20px;">No items yet</p>'; return; }
+    const prices = items.map(v => Number(v.price||0)).filter(p => p > 0);
+    if (!prices.length) { el.innerHTML = '<p style="color:var(--dim);text-align:center;">No pricing data</p>'; return; }
+    const min = Math.min(...prices), max = Math.max(...prices), avg = prices.reduce((s,p)=>s+p,0)/prices.length;
+    const ranges = {'Under R50':0,'R50–R100':0,'R100–R200':0,'Over R200':0};
+    prices.forEach(p => {
+        if (p < 50) ranges['Under R50']++;
+        else if (p < 100) ranges['R50–R100']++;
+        else if (p < 200) ranges['R100–R200']++;
+        else ranges['Over R200']++;
+    });
+    el.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;">
+            <div style="text-align:center;padding:16px;background:var(--bg);border-radius:12px;">
+                <div style="font-size:1.5rem;font-weight:800;color:var(--accent);">${fmtCurrency(min)}</div>
+                <div style="font-size:0.78rem;color:var(--dim);font-weight:600;margin-top:4px;">Lowest Price</div>
+            </div>
+            <div style="text-align:center;padding:16px;background:var(--bg);border-radius:12px;">
+                <div style="font-size:1.5rem;font-weight:800;color:var(--purple);">${fmtCurrency(avg)}</div>
+                <div style="font-size:0.78rem;color:var(--dim);font-weight:600;margin-top:4px;">Average Price</div>
+            </div>
+            <div style="text-align:center;padding:16px;background:var(--bg);border-radius:12px;">
+                <div style="font-size:1.5rem;font-weight:800;">${fmtCurrency(max)}</div>
+                <div style="font-size:0.78rem;color:var(--dim);font-weight:600;margin-top:4px;">Highest Price</div>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
+            ${Object.entries(ranges).map(([range, count]) => `
+                <div style="padding:14px;background:var(--bg);border-radius:12px;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:0.85rem;font-weight:600;">${range}</span>
+                    <span style="font-weight:800;color:var(--accent);">${count} item${count!==1?'s':''}</span>
+                </div>`).join('')}
+        </div>`;
+}
+
+function getLast6Months() {
+    const months = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        months.push(d.toLocaleDateString('en-ZA',{month:'short',year:'2-digit'}));
+    }
+    return months;
+}
 
 function renderMenuGrid() {
     const grid = document.getElementById('menuGrid');
     let items = Object.entries(menuCache).reverse();
     if (menuFilter.search) {
         const s = menuFilter.search.toLowerCase();
-        items = items.filter(([,v]) => (v.name||'').toLowerCase().includes(s));
+        items = items.filter(([,v]) => (v.name||'').toLowerCase().includes(s) || (v.description||'').toLowerCase().includes(s));
     }
     if (menuFilter.category) {
         items = items.filter(([,v]) => v.category === menuFilter.category);
     }
     if (!items.length) {
-        grid.innerHTML = `<div class="empty-state">No menu items yet</div>`;
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+            <i data-lucide="package" style="width:44px;height:44px;display:block;margin:0 auto 12px;opacity:.4;"></i>
+            <p style="font-weight:600;margin-bottom:4px;">No menu items yet</p>
+            <p style="font-size:0.85rem;">Add your first item to get started</p>
+            <button class="btn-primary" style="margin:16px auto 0;display:flex;" onclick="openAddItemModal()">
+                <i data-lucide="plus" style="width:16px;height:16px;"></i> Add First Item
+            </button>
+        </div>`;
         lucide.createIcons();
         return;
     }
-    grid.innerHTML = items.map(([key, v]) => { /* original item card */ }).join('');
+    grid.innerHTML = items.map(([key, v]) => {
+        const statusColors = {
+            available:   { bg: 'var(--accent-light)', color: 'var(--accent-dark)', text: 'Available' },
+            unavailable: { bg: '#fff5cc', color: '#997300', text: 'Unavailable' },
+            sold_out:    { bg: '#fff1f0', color: 'var(--danger)', text: 'Sold Out' },
+        };
+        const sc = statusColors[v.status || 'available'] || statusColors.available;
+        const imgEl = v.imageURL
+            ? `<img src="${v.imageURL}" class="menu-item-img" alt="${v.name}" loading="lazy">`
+            : `<div class="menu-item-img-placeholder"><i data-lucide="image" style="width:36px;height:36px;"></i></div>`;
+        const isFeatured = v.featured === 'true' || v.featured === true;
+        return `
+        <div class="menu-item-card">
+            <div style="position:relative;">
+                ${imgEl}
+                <div class="menu-item-actions">
+                    <button class="icon-btn icon-btn-edit" onclick="openEditItemModal('${key}')"><i data-lucide="edit-2" style="width:13px;height:13px;"></i></button>
+                    <button class="icon-btn icon-btn-delete" onclick="openDeleteModal('${key}','${(v.name||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button>
+                </div>
+                <div class="menu-item-badge">
+                    <span style="background:${sc.bg};color:${sc.color};border:1px solid ${sc.color};border-radius:10px;font-size:0.68rem;font-weight:700;padding:3px 8px;">${sc.text}</span>
+                    ${isFeatured ? '<span style="background:var(--yellow);color:#5a3e00;border-radius:10px;font-size:0.68rem;font-weight:700;padding:3px 8px;margin-left:4px;">⭐ Featured</span>' : ''}
+                </div>
+            </div>
+            <div class="menu-item-body">
+                <div class="menu-item-name">${v.name || 'Unnamed Item'}</div>
+                <div style="font-size:0.72rem;color:var(--accent-dark);font-weight:600;margin-bottom:4px;">${v.category || ''}</div>
+                <div class="menu-item-desc">${v.description || ''}</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+                    <div class="menu-item-price">${fmtCurrency(v.price)}</div>
+                    ${v.prepTime ? `<div style="font-size:0.76rem;color:var(--dim);display:flex;align-items:center;gap:3px;"><i data-lucide="clock" style="width:12px;height:12px;"></i> ${v.prepTime} min</div>` : ''}
+                </div>
+                ${v.allergens ? `<div style="margin-top:6px;font-size:0.72rem;color:var(--dim);"><span style="font-weight:700;">⚠ Allergens:</span> ${v.allergens}</div>` : ''}
+            </div>
+        </div>`;
+    }).join('');
     lucide.createIcons();
 }
 
 let menuFilter = { search: '', category: '' };
 function filterMenuItems(search) { menuFilter.search = search; menuFilter.category = document.getElementById('menuCatFilter').value; renderMenuGrid(); }
 
-function renderFeaturedItems() { /* original */ }
-function toggleFeatured(key, val) { /* original */ }
-function syncFeaturedToGlobal() { /* original */ }
+function renderFeaturedItems() {
+    const items = Object.entries(menuCache);
+    const featuredItems = items.filter(([,v]) => v.featured === true || v.featured === 'true');
+    const count = featuredItems.length;
+    document.getElementById('featuredCount').textContent = count;
 
-function renderOrders() { /* original */ }
-function renderRecentOrders() { /* original */ }
-function updateOrderStatus(key, status) { /* original */ }
+    const listEl = document.getElementById('featuredItemsList');
+    if (!count) {
+        listEl.innerHTML = '<div style="color:var(--dim);text-align:center;padding:20px;font-size:0.88rem;">No featured items yet. Toggle items from the panel on the right.</div>';
+    } else {
+        listEl.innerHTML = featuredItems.map(([key, v]) => `
+            <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg);border-radius:12px;margin-bottom:8px;">
+                ${v.imageURL ? `<img src="${v.imageURL}" style="width:44px;height:44px;object-fit:cover;border-radius:10px;flex-shrink:0;">` : `<div style="width:44px;height:44px;background:var(--accent-light);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i data-lucide="image" style="width:18px;height:18px;color:var(--accent);"></i></div>`}
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;font-size:0.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.name}</div>
+                    <div style="font-size:0.76rem;color:var(--accent-dark);font-weight:600;">${fmtCurrency(v.price)}</div>
+                </div>
+                <button class="btn btn-danger" style="padding:5px 12px;font-size:0.76rem;" onclick="toggleFeatured('${key}',false)">
+                    <i data-lucide="x" style="width:12px;height:12px;"></i> Remove
+                </button>
+            </div>
+        `).join('');
+    }
 
-function openAddItemModal() { /* original */ }
-function openEditItemModal(key) { /* original */ }
-async function saveMenuItem() { /* original */ }
-function openDeleteModal(key, name) { /* original */ }
-function confirmDelete() { /* original */ }
+    const toggleEl = document.getElementById('featuredToggleList');
+    if (!items.length) {
+        toggleEl.innerHTML = '<div style="color:var(--dim);text-align:center;padding:20px;font-size:0.88rem;">No items in menu yet.</div>';
+    } else {
+        toggleEl.innerHTML = items.map(([key, v]) => {
+            const isFeat = v.featured === true || v.featured === 'true';
+            return `
+            <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:6px;background:${isFeat?'var(--accent-light)':''};border:1px solid ${isFeat?'var(--accent)':'var(--border)'};">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;font-size:0.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.name || 'Unnamed'}</div>
+                    <div style="font-size:0.74rem;color:var(--dim);">${v.category || ''} · ${fmtCurrency(v.price)}</div>
+                </div>
+                <div class="toggle ${isFeat?'on':''}" onclick="toggleFeatured('${key}',${!isFeat})" style="flex-shrink:0;"></div>
+            </div>`;
+        }).join('');
+    }
 
-function populateProfileForm() { /* original */ }
-function togglePDay(cb) { /* original */ }
-function saveStoreProfile() { /* original */ }
+    const previewEl = document.getElementById('featuredPreviewCards');
+    if (!count) {
+        previewEl.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:0.88rem;padding:20px;">No featured items to preview</div>';
+    } else {
+        previewEl.innerHTML = featuredItems.map(([key, v]) => `
+            <div style="flex-shrink:0;width:140px;background:rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);">
+                ${v.imageURL ? `<img src="${v.imageURL}" style="width:100%;height:90px;object-fit:cover;">` : `<div style="width:100%;height:90px;background:rgba(6,193,103,0.2);display:flex;align-items:center;justify-content:center;"><i data-lucide="star" style="width:28px;height:28px;color:var(--accent);"></i></div>`}
+                <div style="padding:10px;">
+                    <div style="font-size:0.8rem;font-weight:700;color:white;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.name}</div>
+                    <div style="font-size:0.78rem;color:var(--accent);font-weight:700;margin-top:2px;">${fmtCurrency(v.price)}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+    setTimeout(() => lucide.createIcons(), 50);
+    syncFeaturedToGlobal();
+}
 
-function loadSettings() { /* original */ }
-function toggleSetting(el, key) { /* original */ }
-function saveSettings() { /* original */ }
+function toggleFeatured(key, featVal) {
+    if (!VENDOR_KEY) return;
+    db.ref(`vendors/${VENDOR_KEY}/menu/${key}`).update({ featured: featVal, updatedAt: Date.now() }).then(() => {
+        showToast(featVal ? 'Item added to featured!' : 'Item removed from featured', 'success');
+    }).catch(() => showToast('Error updating featured', 'error'));
+}
+
+function syncFeaturedToGlobal() {
+    if (!VENDOR_KEY || !vendorData) return;
+    const featured = Object.entries(menuCache)
+        .filter(([,v]) => v.featured === true || v.featured === 'true')
+        .reduce((obj, [k, v]) => {
+            obj[k] = {
+                name: v.name, category: v.category, price: v.price,
+                description: v.description, imageURL: v.imageURL || '',
+                vendorKey: VENDOR_KEY, vendorName: vendorData.name || '',
+                status: v.status, updatedAt: Date.now(),
+            };
+            return obj;
+        }, {});
+    db.ref(`featured_items/${VENDOR_KEY}`).set(Object.keys(featured).length ? featured : null);
+}
+
+function renderOrders() {
+    const container = document.getElementById('ordersContainer');
+    const filter = document.getElementById('orderFilter')?.value || 'all';
+    let orders = Object.entries(ordersCache).sort((a,b) => (b[1].createdAt||0) - (a[1].createdAt||0));
+    if (filter !== 'all') orders = orders.filter(([,o]) => o.status === filter);
+    if (!orders.length) {
+        container.innerHTML = `<div class="empty-state">
+            <i data-lucide="shopping-bag" style="width:48px;height:48px;display:block;margin:0 auto 12px;opacity:.4;"></i>
+            No ${filter !== 'all' ? filter + ' ' : ''}orders found
+        </div>`;
+        lucide.createIcons();
+        return;
+    }
+    container.innerHTML = orders.map(([key, o]) => {
+        const statusColors = {
+            pending:   { bg:'#fff5cc', color:'#997300', text:'Pending' },
+            accepted:  { bg:'#e8f0ff', color:'var(--purple)', text:'Accepted' },
+            preparing: { bg:'#fff0d4', color:'#c46b00', text:'Preparing' },
+            ready:     { bg:'var(--accent-light)', color:'var(--accent-dark)', text:'Ready' },
+            delivered: { bg:'var(--accent-light)', color:'var(--accent-dark)', text:'Delivered' },
+            cancelled: { bg:'#fff1f0', color:'var(--danger)', text:'Cancelled' },
+        };
+        const sc = statusColors[o.status] || statusColors.pending;
+        const customer = o.customer || o.user || {};
+        const customerName = customer.name || customer.displayName || 'Customer';
+        const items = o.items ? Object.values(o.items) : [];
+        const itemsSummary = items.slice(0,3).map(i => `${i.quantity||1}× ${i.name}`).join(', ') + (items.length > 3 ? ` +${items.length-3} more` : '');
+        return `
+        <div class="order-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+                <div>
+                    <div style="font-weight:700;font-size:0.95rem;">Order #${o.orderNumber || key.slice(-6).toUpperCase()}</div>
+                    <div style="color:var(--dim);font-size:0.82rem;margin-top:2px;">${customerName} · ${fmtDate(o.createdAt)} ${fmtTime(o.createdAt)}</div>
+                    ${itemsSummary ? `<div style="font-size:0.82rem;color:var(--text);margin-top:6px;">${itemsSummary}</div>` : ''}
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+                    <span style="font-weight:800;font-size:1rem;color:var(--accent);">${fmtCurrency(o.total)}</span>
+                    <span style="background:${sc.bg};color:${sc.color};border-radius:10px;font-size:0.72rem;font-weight:700;padding:4px 10px;">${sc.text}</span>
+                </div>
+            </div>
+            ${o.status === 'pending' ? `
+            <div style="margin-top:12px;display:flex;gap:8px;">
+                <button class="btn btn-success" onclick="updateOrderStatus('${key}','preparing')"><i data-lucide="chef-hat" style="width:13px;height:13px;"></i> Accept & Prepare</button>
+                <button class="btn btn-danger" onclick="updateOrderStatus('${key}','cancelled')"><i data-lucide="x" style="width:13px;height:13px;"></i> Decline</button>
+            </div>` : ''}
+            ${o.status === 'preparing' ? `
+            <div style="margin-top:12px;">
+                <button class="btn btn-success" onclick="updateOrderStatus('${key}','ready')"><i data-lucide="check-circle" style="width:13px;height:13px;"></i> Mark as Ready</button>
+            </div>` : ''}
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+}
+
+function renderRecentOrders() {
+    const container = document.getElementById('recentOrdersList');
+    const recent = Object.entries(ordersCache)
+        .sort((a,b) => (b[1].createdAt||0) - (a[1].createdAt||0)).slice(0, 5);
+    if (!recent.length) {
+        container.innerHTML = `<div class="empty-state">
+            <i data-lucide="shopping-bag" style="width:40px;height:40px;display:block;margin:0 auto 12px;opacity:.4;"></i>
+            <p style="font-weight:600;margin-bottom:4px;">No orders yet</p>
+        </div>`;
+        lucide.createIcons();
+        return;
+    }
+    const statusColors = { pending:'#f5a623', accepted:'var(--purple)', preparing:'var(--warning)', ready:'var(--accent)', delivered:'var(--accent)', cancelled:'var(--danger)' };
+    container.innerHTML = recent.map(([key, o]) => {
+        const customer = o.customer || o.user || {};
+        return `
+        <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:${statusColors[o.status]||'var(--dim)'};flex-shrink:0;"></div>
+                <div>
+                    <div style="font-weight:700;font-size:0.88rem;">Order #${o.orderNumber || key.slice(-6).toUpperCase()}</div>
+                    <div style="color:var(--dim);font-size:0.76rem;">${customer.name || 'Customer'} · ${fmtTime(o.createdAt)}</div>
+                </div>
+            </div>
+            <div style="font-weight:700;color:var(--accent);font-size:0.9rem;">${fmtCurrency(o.total)}</div>
+        </div>`;
+    }).join('');
+}
+
+function updateOrderStatus(key, newStatus) {
+    db.ref('orders/' + key).update({ status: newStatus, updatedAt: Date.now() }).then(() => {
+        showToast(`Order status updated to ${newStatus}`, 'success');
+    }).catch(() => showToast('Error updating order', 'error'));
+}
+
+function openAddItemModal() {
+    document.getElementById('item-key').value = '';
+    document.getElementById('item-name').value = '';
+    document.getElementById('item-category').selectedIndex = 0;
+    document.getElementById('item-desc').value = '';
+    document.getElementById('item-price').value = '';
+    document.getElementById('item-preptime').value = '';
+    document.getElementById('item-calories').value = '';
+    document.getElementById('item-allergens').value = '';
+    document.getElementById('item-image').value = '';
+    document.getElementById('item-status').value = 'available';
+    document.getElementById('item-featured').value = 'false';
+    document.getElementById('item-img-preview-wrap').style.display = 'none';
+    document.getElementById('itemModalTitle').innerHTML = '<i data-lucide="package" style="width:22px;height:22px;color:var(--accent);"></i> Add Menu Item';
+    document.getElementById('itemSaveLabel').textContent = 'Add Item';
+    showModal('itemModal');
+}
+
+function openEditItemModal(key) {
+    const v = menuCache[key];
+    if (!v) return;
+    document.getElementById('item-key').value = key;
+    document.getElementById('item-name').value = v.name || '';
+    document.getElementById('item-category').value = v.category || '';
+    document.getElementById('item-desc').value = v.description || '';
+    document.getElementById('item-price').value = v.price || '';
+    document.getElementById('item-preptime').value = v.prepTime || '';
+    document.getElementById('item-calories').value = v.calories || '';
+    document.getElementById('item-allergens').value = v.allergens || '';
+    document.getElementById('item-image').value = '';
+    document.getElementById('item-status').value = v.status || 'available';
+    document.getElementById('item-featured').value = String(v.featured || 'false');
+    document.getElementById('itemModalTitle').innerHTML = '<i data-lucide="edit-2" style="width:22px;height:22px;color:var(--accent);"></i> Edit Menu Item';
+    document.getElementById('itemSaveLabel').textContent = 'Save Changes';
+    const previewWrap = document.getElementById('item-img-preview-wrap');
+    if (v.imageURL) {
+        document.getElementById('item-img-preview').src = v.imageURL;
+        previewWrap.style.display = 'block';
+    } else {
+        previewWrap.style.display = 'none';
+    }
+    showModal('itemModal');
+}
+
+async function saveMenuItem() {
+    if (!VENDOR_KEY) { showToast('No vendor loaded', 'error'); return; }
+    const key = document.getElementById('item-key').value;
+    const name = document.getElementById('item-name').value.trim();
+    const category = document.getElementById('item-category').value;
+    const price = parseFloat(document.getElementById('item-price').value);
+    if (!name) { showToast('Item name is required', 'error'); return; }
+    if (!category) { showToast('Please select a category', 'error'); return; }
+    if (!price || price <= 0) { showToast('Please enter a valid price', 'error'); return; }
+
+    const file = document.getElementById('item-image').files[0];
+    let imageURL = key ? (menuCache[key]?.imageURL || '') : '';
+    if (file) {
+        showToast('Uploading image…', 'info');
+        try { imageURL = await uploadToCloudinary(file); }
+        catch { showToast('Image upload failed', 'error'); return; }
+    }
+
+    const featuredVal = document.getElementById('item-featured').value;
+    const data = {
+        name, category,
+        description: document.getElementById('item-desc').value.trim(),
+        price, prepTime: document.getElementById('item-preptime').value || '',
+        calories: document.getElementById('item-calories').value || '',
+        allergens: document.getElementById('item-allergens').value.trim(),
+        status: document.getElementById('item-status').value,
+        featured: featuredVal === 'true' ? true : false,
+        imageURL, updatedAt: Date.now(),
+        vendorKey: VENDOR_KEY,
+        vendorName: vendorData?.name || '',
+    };
+
+    const ref = key
+        ? db.ref(`vendors/${VENDOR_KEY}/menu/${key}`).update(data)
+        : db.ref(`vendors/${VENDOR_KEY}/menu`).push({ ...data, createdAt: Date.now() });
+
+    ref.then(() => {
+        showToast(key ? `"${name}" updated!` : `"${name}" added to menu!`, 'success');
+        hideModal('itemModal');
+        syncFeaturedToGlobal();
+    }).catch(() => showToast('Error saving item', 'error'));
+}
+
+function openDeleteModal(key, name) {
+    document.getElementById('del-key').value = key;
+    document.getElementById('del-name').textContent = `"${name}"`;
+    showModal('deleteModal');
+}
+function confirmDelete() {
+    const key = document.getElementById('del-key').value;
+    if (!VENDOR_KEY || !key) return;
+    db.ref(`vendors/${VENDOR_KEY}/menu/${key}`).remove().then(() => {
+        showToast('Item deleted', 'success');
+        hideModal('deleteModal');
+        syncFeaturedToGlobal();
+    }).catch(() => showToast('Error deleting item', 'error'));
+}
+
+function populateProfileForm() {
+    if (!vendorData) return;
+    const addr = vendorData.address || {};
+    const fields = {
+        'p-name': vendorData.name, 'p-tradename': vendorData.tradingName,
+        'p-cuisine-cat': vendorData.cuisineCategory, 'p-cuisine': vendorData.cuisine,
+        'p-regno': vendorData.businessRegNo, 'p-vat': vendorData.vatNumber,
+        'p-owner': vendorData.ownerName, 'p-phone': vendorData.phone,
+        'p-email': vendorData.email, 'p-whatsapp': vendorData.whatsapp,
+        'p-website': vendorData.website, 'p-street': addr.street,
+        'p-suburb': addr.suburb, 'p-city': addr.city,
+        'p-province': addr.province, 'p-postal': addr.postalCode,
+        'p-radius': vendorData.deliveryRadius || '5',
+        'p-minorder': vendorData.minOrderValue || vendorData.minOrder,
+        'p-open': vendorData.openingTime || '08:00',
+        'p-close': vendorData.closingTime || '22:00',
+        'p-preptime': vendorData.avgPrepTime,
+    };
+    Object.entries(fields).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el && val !== undefined && val !== null) el.value = val;
+    });
+    const savedDays = Array.isArray(vendorData.operatingDays) ? vendorData.operatingDays : [];
+    document.querySelectorAll('#p-days input[type=checkbox]').forEach(cb => {
+        cb.checked = savedDays.includes(cb.value);
+        cb.closest('label').classList.toggle('checked', cb.checked);
+    });
+}
+
+function togglePDay(cb) {
+    cb.closest('label').classList.toggle('checked', cb.checked);
+}
+
+function saveStoreProfile() {
+    if (!VENDOR_KEY) { showToast('No vendor loaded', 'error'); return; }
+    const name = document.getElementById('p-name').value.trim();
+    if (!name) { showToast('Business name is required', 'error'); return; }
+    const days = Array.from(document.querySelectorAll('#p-days input[type=checkbox]:checked')).map(c => c.value);
+    const upd = {
+        name,
+        tradingName:     document.getElementById('p-tradename').value.trim(),
+        cuisineCategory: document.getElementById('p-cuisine-cat').value,
+        cuisine:         document.getElementById('p-cuisine').value.trim() || document.getElementById('p-cuisine-cat').value,
+        businessRegNo:   document.getElementById('p-regno').value.trim(),
+        vatNumber:       document.getElementById('p-vat').value.trim(),
+        ownerName:       document.getElementById('p-owner').value.trim(),
+        phone:           document.getElementById('p-phone').value.trim(),
+        email:           document.getElementById('p-email').value.trim(),
+        whatsapp:        document.getElementById('p-whatsapp').value.trim(),
+        website:         document.getElementById('p-website').value.trim(),
+        address: {
+            street:    document.getElementById('p-street').value.trim(),
+            suburb:    document.getElementById('p-suburb').value.trim(),
+            city:      document.getElementById('p-city').value.trim(),
+            province:  document.getElementById('p-province').value,
+            postalCode:document.getElementById('p-postal').value.trim(),
+        },
+        deliveryRadius: document.getElementById('p-radius').value,
+        minOrderValue:  document.getElementById('p-minorder').value,
+        openingTime:    document.getElementById('p-open').value,
+        closingTime:    document.getElementById('p-close').value,
+        avgPrepTime:    document.getElementById('p-preptime').value,
+        operatingDays:  days,
+        updatedAt:      Date.now(),
+    };
+    db.ref('vendors/' + VENDOR_KEY).update(upd).then(() => {
+        showToast(`Profile updated for "${name}"`, 'success');
+    }).catch(() => showToast('Error saving profile', 'error'));
+}
+
+const defaultSettings = { storeOpen:true, onlineOrders:true, deliveryAvailable:true, takeawayAvailable:true, orderAlerts:true, smsNotifs:false };
+const toggleMap = { storeOpen:'tog-open', onlineOrders:'tog-online', deliveryAvailable:'tog-delivery', takeawayAvailable:'tog-takeaway', orderAlerts:'tog-alerts', smsNotifs:'tog-sms' };
+
+function loadSettings() {
+    const saved = JSON.parse(localStorage.getItem('vynix_vendor_settings')||'{}');
+    Object.assign(settingsState, defaultSettings, saved);
+    Object.entries(toggleMap).forEach(([k, id]) => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('on', !!settingsState[k]);
+    });
+    if (VENDOR_KEY && vendorData) {
+        const vs = vendorData.settings || {};
+        if (vs.deliveryFee !== undefined) document.getElementById('s-deliveryfee').value = vs.deliveryFee;
+        if (vs.freeDeliveryOver !== undefined) document.getElementById('s-freedeilvery').value = vs.freeDeliveryOver;
+        if (vs.deliveryTime !== undefined) document.getElementById('s-deliverytime').value = vs.deliveryTime;
+    }
+}
+
+function toggleSetting(el, key) {
+    el.classList.toggle('on');
+    settingsState[key] = el.classList.contains('on');
+}
+
+function saveSettings() {
+    localStorage.setItem('vynix_vendor_settings', JSON.stringify(settingsState));
+    if (VENDOR_KEY) {
+        db.ref('vendors/' + VENDOR_KEY + '/settings').update({
+            deliveryFee:     document.getElementById('s-deliveryfee').value,
+            freeDeliveryOver:document.getElementById('s-freedeilvery').value,
+            deliveryTime:    document.getElementById('s-deliverytime').value,
+            storeOpen:       settingsState.storeOpen,
+            onlineOrders:    settingsState.onlineOrders,
+            deliveryAvailable: settingsState.deliveryAvailable,
+            takeawayAvailable: settingsState.takeawayAvailable,
+            updatedAt: Date.now(),
+        }).then(() => showToast('Settings saved!', 'success'))
+          .catch(() => showToast('Error saving settings', 'error'));
+    } else {
+        showToast('Settings saved locally', 'success');
+    }
+}
 
 function showVendorTab(id, el) {
     document.querySelectorAll('#vendorMainPanel .page-content').forEach(p => p.classList.remove('active'));
@@ -2041,6 +2530,11 @@ document.getElementById('vendorSidebar')?.addEventListener('mouseenter', (e) => 
 document.getElementById('vendorSidebar')?.addEventListener('mouseleave', (e) => { e.currentTarget.classList.remove('expanded'); document.getElementById('vendorMainPanel')?.classList.remove('shifted'); });
 document.getElementById('driverSidebar')?.addEventListener('mouseenter', (e) => { e.currentTarget.classList.add('expanded'); document.getElementById('driverMainPanel')?.classList.add('shifted'); });
 document.getElementById('driverSidebar')?.addEventListener('mouseleave', (e) => { e.currentTarget.classList.remove('expanded'); document.getElementById('driverMainPanel')?.classList.remove('shifted'); });
+
+// ==================== HELPER FUNCTIONS ====================
+function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString('en-ZA') : 'N/A'; }
+function fmtTime(ts) { return ts ? new Date(ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : ''; }
+function fmtCurrency(v) { return 'R ' + Number(v||0).toFixed(2); }
 
 // ==================== BOOTSTRAP ====================
 lucide.createIcons();
