@@ -427,9 +427,10 @@
         tr:hover td { background: #fafcfa; }
 
         .badge { padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
-        .badge-active  { background: var(--accent-light); color: var(--accent-dark); border: 1px solid var(--accent); }
+        .badge-open  { background: var(--accent-light); color: var(--accent-dark); border: 1px solid var(--accent); }
         .badge-pending { background: #fff5cc; color: #997300; border: 1px solid #ffe066; }
         .badge-disabled{ background: #fff1f0; color: var(--danger); border: 1px solid var(--danger); }
+        .badge-active     { background: var(--accent-light); color: var(--accent-dark); border: 1px solid var(--accent); }
 
         .btn-primary {
             background: var(--accent); color: white; border: none; padding: 12px 22px;
@@ -929,7 +930,7 @@
     </div>
     <div class="user-profile" onclick="showVendorTab('profile',null)">
         <div class="user-avatar" id="vendorAvatar">V</div>
-        <div class="user-info"><div style="font-weight:700;" id="vendorSidebarName">Vendor</div><div style="font-size:0.72rem;" id="vendorSidebarStatus">Active Store</div></div>
+        <div class="user-info"><div style="font-weight:700;" id="vendorSidebarName">Vendor</div><div style="font-size:0.72rem;" id="vendorSidebarStatus">Open Store</div></div>
     </div>
 </nav>
 
@@ -950,10 +951,11 @@
         <div id="statusBanner" style="border-radius:16px;padding:16px 22px;margin-bottom:24px;display:flex;align-items:center;gap:14px;border:1px solid var(--accent);background:var(--accent-light);">
             <div style="width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(6,193,103,0.2);flex-shrink:0;animation:pulse 2s infinite;"></div>
             <div>
-                <div style="font-weight:700;" id="bannerText">Your store is Active</div>
+                <div style="font-weight:700;" id="bannerText">Your store is Open</div>
                 <div style="font-size:0.82rem;color:var(--accent-dark);" id="bannerSub">Customers can place orders</div>
             </div>
-            <div style="margin-left:auto;" id="bannerBadge"><span class="badge badge-active">ACTIVE</span></div>
+            <div style="margin-left:auto;" id="bannerBadge"><span class="badge badge-open">OPEN</span></div>
+            <div style="margin-left:auto;" id="storeHoursBadge"></div>
         </div>
 
         <div class="stats-grid">
@@ -1894,6 +1896,96 @@ function startVendorSync() {
     });
 }
 
+// ==================== USER SYSTEM & WORKING HOURS ====================
+function getUserDisplayName() {
+    if (currentRole === 'vendor' && vendorData) {
+        return vendorData.ownerName || vendorData.name || 'Vendor';
+    } else if (currentRole === 'driver' && driverData) {
+        return driverData.name || 'Driver';
+    }
+    return 'User';
+}
+
+function getUserRole() {
+    return currentRole === 'vendor' ? 'Restaurant Partner' : 'Delivery Partner';
+}
+
+function checkStoreHours() {
+    if (!vendorData) return { isOpen: false, message: 'Hours not set' };
+    
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTime = currentHour * 60 + currentMinute;
+    
+    // Get operating days
+    const operatingDays = vendorData.operatingDays || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const daysMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = daysMap[now.getDay()];
+    
+    if (!operatingDays.includes(today)) {
+        return { isOpen: false, message: 'Closed today' };
+    }
+    
+    // Get opening and closing times
+    const openTimeStr = vendorData.openingTime || '08:00';
+    const closeTimeStr = vendorData.closingTime || '22:00';
+    
+    const [openHour, openMin] = openTimeStr.split(':').map(Number);
+    const [closeHour, closeMin] = closeTimeStr.split(':').map(Number);
+    
+    const openTime = openHour * 60 + openMin;
+    let closeTime = closeHour * 60 + closeMin;
+    
+    // Handle overnight hours (if closing time is less than opening time, it means next day)
+    if (closeTime < openTime) {
+        closeTime += 24 * 60; // Add 24 hours
+    }
+    
+    let adjustedCurrentTime = currentTime;
+    if (closeTime > 24 * 60 && currentTime < closeTime - 24 * 60) {
+        adjustedCurrentTime += 24 * 60;
+    }
+    
+    const isOpen = adjustedCurrentTime >= openTime && adjustedCurrentTime < closeTime;
+    
+    return {
+        isOpen,
+        message: isOpen ? `Open until ${closeTimeStr}` : `Opens at ${openTimeStr}`
+    };
+}
+
+function updateUserDisplay() {
+    // Update sidebar user info
+    if (currentRole === 'vendor') {
+        const userName = getUserDisplayName();
+        document.getElementById('vendorSidebarName').textContent = userName;
+        document.getElementById('vendorAvatar').textContent = userName.charAt(0).toUpperCase();
+        document.getElementById('settingsSignedInAs').innerHTML = `${userName} <span style="color:var(--accent); font-size:0.7rem;">(${getUserRole()})</span>`;
+        
+        // Update store hours status
+        const hoursStatus = checkStoreHours();
+        const hoursBadge = document.getElementById('storeHoursBadge') || createHoursBadge();
+        hoursBadge.innerHTML = hoursStatus.isOpen ? 
+            '<span class="badge badge-open"><i data-lucide="sun" style="width:12px;height:12px;"></i> OPEN</span>' : 
+            '<span class="badge badge-closed"><i data-lucide="moon" style="width:12px;height:12px;"></i> CLOSED</span>';
+        lucide.createIcons();
+    } else if (currentRole === 'driver') {
+        const userName = getUserDisplayName();
+        document.getElementById('driverSidebarName').textContent = userName;
+        document.getElementById('driverAvatar').textContent = userName.charAt(0).toUpperCase();
+    }
+}
+
+function createHoursBadge() {
+    const badge = document.createElement('div');
+    badge.id = 'storeHoursBadge';
+    badge.style.marginLeft = 'auto';
+    document.querySelector('#statusBanner .store-hours-badge')?.remove();
+    document.getElementById('statusBanner').appendChild(badge);
+    return badge;
+}
+
 function applyVendorUI() {
     if (!vendorData) return;
     const name = vendorData.name || 'My Restaurant';
@@ -1901,33 +1993,52 @@ function applyVendorUI() {
     const initial = name.charAt(0).toUpperCase();
     document.getElementById('chipName').textContent = name;
     document.getElementById('vendorSidebarName').textContent = name;
-    document.getElementById('vendorSidebarStatus').textContent = status === 'active' ? 'Active Store' : status;
+    document.getElementById('vendorSidebarStatus').textContent = status === 'active' ? 'Open Store' : status;
     document.getElementById('vendorAvatar').textContent = initial;
     document.getElementById('dashSubtitle').textContent = `Welcome back to ${name}`;
-    document.getElementById('settingsSignedInAs').textContent = `${name} (${vendorData.vendorID || 'ID Pending'})`;
+    
+    // Update user display with role info
+    const userName = getUserDisplayName();
+    document.getElementById('settingsSignedInAs').innerHTML = `${userName} <span style="color:var(--accent); font-size:0.7rem;">(${getUserRole()})</span>`;
+    
     const banner = document.getElementById('statusBanner');
     const bannerText = document.getElementById('bannerText');
     const bannerSub = document.getElementById('bannerSub');
     const bannerBadge = document.getElementById('bannerBadge');
+    
+    // Check store hours
+    const hoursStatus = checkStoreHours();
+    
     if (status === 'active') {
         banner.style.background = 'var(--accent-light)'; banner.style.borderColor = 'var(--accent)';
-        bannerText.textContent = `${name} is Active`;
-        bannerSub.textContent = 'Customers can place orders';
-        bannerBadge.innerHTML = '<span class="badge badge-active">ACTIVE</span>';
+        bannerText.textContent = `${name} is Open`;
+        bannerSub.textContent = hoursStatus.isOpen ? 
+            `Ready for orders • ${hoursStatus.message}` : 
+            `Currently closed • ${hoursStatus.message}`;
+        bannerBadge.innerHTML = '<span class="badge badge-open">OPEN</span>';
+        
+        // Add hours badge
+        const hoursBadge = document.getElementById('storeHoursBadge') || createHoursBadge();
+        hoursBadge.innerHTML = hoursStatus.isOpen ? 
+            '<span class="badge badge-open"><i data-lucide="sun" style="width:12px;height:12px;"></i> OPEN</span>' : 
+            '<span class="badge badge-closed"><i data-lucide="moon" style="width:12px;height:12px;"></i> CLOSED</span>';
     } else if (status === 'pending') {
         banner.style.background = '#fff5cc'; banner.style.borderColor = '#ffe066';
         bannerText.textContent = 'Your store is pending approval';
         bannerSub.textContent = 'Admin will review your application shortly';
         bannerBadge.innerHTML = '<span class="badge badge-pending">PENDING</span>';
+        document.getElementById('storeHoursBadge')?.remove();
     } else {
         banner.style.background = '#fff1f0'; banner.style.borderColor = 'var(--danger)';
         bannerText.textContent = 'Your store is currently disabled';
         bannerSub.textContent = 'Contact admin to re-enable your store';
         bannerBadge.innerHTML = '<span class="badge badge-disabled">DISABLED</span>';
+        document.getElementById('storeHoursBadge')?.remove();
     }
+    
     document.getElementById('profileAvatarInitials').textContent = initial;
     document.getElementById('profileHeaderName').textContent = name;
-    document.getElementById('profileHeaderBadge').innerHTML = status === 'active' ? '<span class="badge badge-active">ACTIVE</span>' : status === 'pending' ? '<span class="badge badge-pending">PENDING</span>' : '<span class="badge badge-disabled">DISABLED</span>';
+    document.getElementById('profileHeaderBadge').innerHTML = status === 'active' ? '<span class="badge badge-open">OPEN</span>' : status === 'pending' ? '<span class="badge badge-pending">PENDING</span>' : '<span class="badge badge-disabled">DISABLED</span>';
     document.getElementById('profileVendorID').textContent = vendorData.vendorID || 'PENDING';
     const addr = vendorData.address || {};
     document.getElementById('storeInfoSnippet').innerHTML = `
@@ -1937,7 +2048,7 @@ function applyVendorUI() {
         </div>
         <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
             <i data-lucide="clock" style="width:15px;height:15px;color:var(--accent);flex-shrink:0;"></i>
-            <span style="font-size:0.85rem;color:var(--dim);">${vendorData.openingTime || '—'} – ${vendorData.closingTime || '—'}</span>
+            <span style="font-size:0.85rem;color:var(--dim);">${vendorData.openingTime || '—'} – ${vendorData.closingTime || '—'} • ${hoursStatus.message}</span>
         </div>
         <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
             <i data-lucide="phone" style="width:15px;height:15px;color:var(--accent);flex-shrink:0;"></i>
@@ -2818,6 +2929,20 @@ document.getElementById('driverSidebar')?.addEventListener('mouseleave', (e) => 
 function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString('en-ZA') : 'N/A'; }
 function fmtTime(ts) { return ts ? new Date(ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : ''; }
 function fmtCurrency(v) { return 'R ' + Number(v||0).toFixed(2); }
+
+// Update user display every minute to check hours
+setInterval(() => {
+    if (currentRole === 'vendor' && vendorData) {
+        const hoursStatus = checkStoreHours();
+        const hoursBadge = document.getElementById('storeHoursBadge');
+        if (hoursBadge) {
+            hoursBadge.innerHTML = hoursStatus.isOpen ? 
+                '<span class="badge badge-open"><i data-lucide="sun" style="width:12px;height:12px;"></i> OPEN</span>' : 
+                '<span class="badge badge-closed"><i data-lucide="moon" style="width:12px;height:12px;"></i> CLOSED</span>';
+        }
+        lucide.createIcons();
+    }
+}, 60000);
 
 // ==================== BOOTSTRAP ====================
 lucide.createIcons();
