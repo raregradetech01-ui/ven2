@@ -1664,16 +1664,30 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const storage = firebase.storage();
 
-// Cloudinary (unchanged)
-const CLD = { cloudName:'dqkujefxj', uploadPreset:'banter_box', apiUrl:'https://api.cloudinary.com/v1_1' };
-async function uploadToCloudinary(file) {
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', CLD.uploadPreset);
-    const r = await fetch(`${CLD.apiUrl}/${CLD.cloudName}/image/upload`, { method:'POST', body:fd });
-    if (!r.ok) throw new Error(r.statusText);
-    return (await r.json()).secure_url;
+// Cloudinary removed - using Firebase Storage instead
+async function uploadToFirebaseStorage(file, path) {
+    return new Promise((resolve, reject) => {
+        const storageRef = storage.ref();
+        const fileRef = storageRef.child(path);
+        const uploadTask = fileRef.put(file);
+        
+        uploadTask.on('state_changed',
+            (snapshot) => {
+                // Progress tracking if needed
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log('Upload is ' + progress + '% done');
+            },
+            (error) => {
+                reject(error);
+            },
+            async () => {
+                const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                resolve(downloadURL);
+            }
+        );
+    });
 }
 
 // ==================== GLOBAL STATE ====================
@@ -1969,6 +1983,14 @@ function setManualStoreStatus(status) {
         document.querySelector('.status-btn.closed').classList.add('active');
     }
     
+    // Save to Firebase
+    if (VENDOR_KEY) {
+        db.ref('vendors/' + VENDOR_KEY).update({
+            manualStoreStatus: status,
+            updatedAt: Date.now()
+        });
+    }
+    
     // Update UI
     updateStoreStatusDisplay();
     showToast(`Store manually set to ${status}`);
@@ -2111,6 +2133,12 @@ function applyVendorUI() {
     const name = vendorData.name || 'My Restaurant';
     const status = vendorData.status || 'pending';
     const initial = name.charAt(0).toUpperCase();
+    
+    // Load manual store status from Firebase if exists
+    if (vendorData.manualStoreStatus) {
+        manualStoreStatus = vendorData.manualStoreStatus;
+    }
+    
     document.getElementById('chipName').textContent = name;
     document.getElementById('vendorSidebarName').textContent = name;
     document.getElementById('vendorSidebarStatus').textContent = status === 'active' ? 'Open Store' : status;
@@ -2628,10 +2656,21 @@ async function saveMenuItem() {
 
     const file = document.getElementById('item-image').files[0];
     let imageURL = key ? (menuCache[key]?.imageURL || '') : '';
+    
     if (file) {
-        showToast('Uploading image…', 'info');
-        try { imageURL = await uploadToCloudinary(file); }
-        catch { showToast('Image upload failed', 'error'); return; }
+        showToast('Uploading image to Firebase Storage…', 'info');
+        try {
+            // Create a unique filename
+            const timestamp = Date.now();
+            const filename = `menu_${VENDOR_KEY}_${timestamp}_${file.name}`;
+            const path = `vendors/${VENDOR_KEY}/menu/${filename}`;
+            imageURL = await uploadToFirebaseStorage(file, path);
+            showToast('Image uploaded successfully', 'success');
+        } catch (error) {
+            console.error('Upload error:', error);
+            showToast('Image upload failed: ' + error.message, 'error');
+            return;
+        }
     }
 
     const featuredVal = document.getElementById('item-featured').value;
@@ -2656,7 +2695,10 @@ async function saveMenuItem() {
         showToast(key ? `"${name}" updated!` : `"${name}" added to menu!`, 'success');
         hideModal('itemModal');
         syncFeaturedToGlobal();
-    }).catch(() => showToast('Error saving item', 'error'));
+    }).catch((error) => {
+        console.error('Save error:', error);
+        showToast('Error saving item: ' + error.message, 'error');
+    });
 }
 
 function openDeleteModal(key, name) {
@@ -2664,9 +2706,25 @@ function openDeleteModal(key, name) {
     document.getElementById('del-name').textContent = `"${name}"`;
     showModal('deleteModal');
 }
-function confirmDelete() {
+
+async function confirmDelete() {
     const key = document.getElementById('del-key').value;
     if (!VENDOR_KEY || !key) return;
+    
+    // If item has an image, delete it from Firebase Storage
+    const item = menuCache[key];
+    if (item && item.imageURL) {
+        try {
+            // Extract file path from URL
+            const storageRef = storage.refFromURL(item.imageURL);
+            await storageRef.delete();
+            console.log('Image deleted from storage');
+        } catch (error) {
+            console.error('Error deleting image:', error);
+            // Continue with item deletion even if image delete fails
+        }
+    }
+    
     db.ref(`vendors/${VENDOR_KEY}/menu/${key}`).remove().then(() => {
         showToast('Item deleted', 'success');
         hideModal('deleteModal');
