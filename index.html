@@ -431,6 +431,7 @@
         .badge-pending { background: #fff5cc; color: #997300; border: 1px solid #ffe066; }
         .badge-disabled{ background: #fff1f0; color: var(--danger); border: 1px solid var(--danger); }
         .badge-active     { background: var(--accent-light); color: var(--accent-dark); border: 1px solid var(--accent); }
+        .badge-closed { background: #fff1f0; color: var(--danger); border: 1px solid var(--danger); }
 
         .btn-primary {
             background: var(--accent); color: white; border: none; padding: 12px 22px;
@@ -665,6 +666,39 @@
         .location-input-large:focus {
             outline: none;
             border-color: var(--accent);
+        }
+
+        /* Manual Open/Close toggle buttons */
+        .store-status-toggle {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+        .status-btn {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: 2px solid var(--border);
+            background: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-btn.open {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent-dark);
+        }
+        .status-btn.closed {
+            background: #fff1f0;
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+        .status-btn.active {
+            transform: scale(0.98);
+            box-shadow: 0 0 0 2px rgba(6,193,103,0.2);
         }
 
         @media (max-width: 768px) {
@@ -942,6 +976,14 @@
             <div>
                 <h1 id="dashGreeting">Good Morning ☀️</h1>
                 <p style="color:var(--dim);font-weight:500;margin-top:4px;" id="dashSubtitle">Here's your store summary</p>
+            </div>
+            <div class="store-status-toggle">
+                <button class="status-btn open active" onclick="setManualStoreStatus('open')">
+                    <i data-lucide="sun" style="width:16px;height:16px;"></i> Open
+                </button>
+                <button class="status-btn closed" onclick="setManualStoreStatus('closed')">
+                    <i data-lucide="moon" style="width:16px;height:16px;"></i> Closed
+                </button>
             </div>
             <button class="btn-primary" onclick="openAddItemModal()">
                 <i data-lucide="plus" style="width:18px;height:18px;"></i> Add Menu Item
@@ -1644,6 +1686,9 @@ let DRIVER_KEY = null;
 let driverData = null;
 let driverOrdersCache = {};
 
+// Manual store status (overrides auto hours if set)
+let manualStoreStatus = null; // 'open' or 'closed'
+
 // Mapbox Token
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
 
@@ -1910,6 +1955,35 @@ function getUserRole() {
     return currentRole === 'vendor' ? 'Restaurant Partner' : 'Delivery Partner';
 }
 
+// Manual store status toggle
+function setManualStoreStatus(status) {
+    manualStoreStatus = status;
+    
+    // Update button styles
+    document.querySelectorAll('.status-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    if (status === 'open') {
+        document.querySelector('.status-btn.open').classList.add('active');
+    } else {
+        document.querySelector('.status-btn.closed').classList.add('active');
+    }
+    
+    // Update UI
+    updateStoreStatusDisplay();
+    showToast(`Store manually set to ${status}`);
+}
+
+function getStoreOpenStatus() {
+    // If manual override is set, use that
+    if (manualStoreStatus) {
+        return manualStoreStatus === 'open';
+    }
+    
+    // Otherwise check hours
+    return checkStoreHours().isOpen;
+}
+
 function checkStoreHours() {
     if (!vendorData) return { isOpen: false, message: 'Hours not set' };
     
@@ -1955,6 +2029,25 @@ function checkStoreHours() {
     };
 }
 
+// Location radius check for customer visibility
+function isWithinDeliveryRadius(customerLat, customerLng) {
+    if (!vendorData || !vendorData.lat || !vendorData.lng) return true; // If no location set, always show
+    if (!customerLat || !customerLng) return true; // If no customer location, show anyway
+    
+    const R = 6371; // Earth's radius in km
+    const dLat = (customerLat - vendorData.lat) * Math.PI / 180;
+    const dLon = (customerLng - vendorData.lng) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(vendorData.lat * Math.PI / 180) * Math.cos(customerLat * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    
+    const maxRadius = vendorData.deliveryRadius ? parseInt(vendorData.deliveryRadius) : 30;
+    return distance <= maxRadius;
+}
+
 function updateUserDisplay() {
     // Update sidebar user info
     if (currentRole === 'vendor') {
@@ -1986,6 +2079,33 @@ function createHoursBadge() {
     return badge;
 }
 
+function updateStoreStatusDisplay() {
+    const isOpen = getStoreOpenStatus();
+    const banner = document.getElementById('statusBanner');
+    const bannerText = document.getElementById('bannerText');
+    const bannerSub = document.getElementById('bannerSub');
+    const bannerBadge = document.getElementById('bannerBadge');
+    const hoursStatus = checkStoreHours();
+    
+    if (isOpen) {
+        banner.style.background = 'var(--accent-light)';
+        banner.style.borderColor = 'var(--accent)';
+        bannerText.textContent = `${vendorData?.name || 'Your store'} is Open`;
+        bannerSub.textContent = manualStoreStatus ? 
+            'Manually set to open' : 
+            (hoursStatus.isOpen ? `Open for orders • ${hoursStatus.message}` : `Open (manual override) • ${hoursStatus.message}`);
+        bannerBadge.innerHTML = '<span class="badge badge-open">OPEN</span>';
+    } else {
+        banner.style.background = '#fff1f0';
+        banner.style.borderColor = 'var(--danger)';
+        bannerText.textContent = `${vendorData?.name || 'Your store'} is Closed`;
+        bannerSub.textContent = manualStoreStatus ? 
+            'Manually set to closed' : 
+            (hoursStatus.message);
+        bannerBadge.innerHTML = '<span class="badge badge-closed">CLOSED</span>';
+    }
+}
+
 function applyVendorUI() {
     if (!vendorData) return;
     const name = vendorData.name || 'My Restaurant';
@@ -2008,14 +2128,26 @@ function applyVendorUI() {
     
     // Check store hours
     const hoursStatus = checkStoreHours();
+    const isOpen = getStoreOpenStatus();
     
     if (status === 'active') {
-        banner.style.background = 'var(--accent-light)'; banner.style.borderColor = 'var(--accent)';
-        bannerText.textContent = `${name} is Open`;
-        bannerSub.textContent = hoursStatus.isOpen ? 
-            `Ready for orders • ${hoursStatus.message}` : 
-            `Currently closed • ${hoursStatus.message}`;
-        bannerBadge.innerHTML = '<span class="badge badge-open">OPEN</span>';
+        if (isOpen) {
+            banner.style.background = 'var(--accent-light)';
+            banner.style.borderColor = 'var(--accent)';
+            bannerText.textContent = `${name} is Open`;
+            bannerSub.textContent = manualStoreStatus ? 
+                'Manually set to open' : 
+                (hoursStatus.isOpen ? `Open for orders • ${hoursStatus.message}` : `Open (manual override) • ${hoursStatus.message}`);
+            bannerBadge.innerHTML = '<span class="badge badge-open">OPEN</span>';
+        } else {
+            banner.style.background = '#fff1f0';
+            banner.style.borderColor = 'var(--danger)';
+            bannerText.textContent = `${name} is Closed`;
+            bannerSub.textContent = manualStoreStatus ? 
+                'Manually set to closed' : 
+                hoursStatus.message;
+            bannerBadge.innerHTML = '<span class="badge badge-closed">CLOSED</span>';
+        }
         
         // Add hours badge
         const hoursBadge = document.getElementById('storeHoursBadge') || createHoursBadge();
@@ -2034,6 +2166,24 @@ function applyVendorUI() {
         bannerSub.textContent = 'Contact admin to re-enable your store';
         bannerBadge.innerHTML = '<span class="badge badge-disabled">DISABLED</span>';
         document.getElementById('storeHoursBadge')?.remove();
+    }
+    
+    // Update status toggle buttons
+    if (manualStoreStatus === 'open') {
+        document.querySelector('.status-btn.open').classList.add('active');
+        document.querySelector('.status-btn.closed').classList.remove('active');
+    } else if (manualStoreStatus === 'closed') {
+        document.querySelector('.status-btn.open').classList.remove('active');
+        document.querySelector('.status-btn.closed').classList.add('active');
+    } else {
+        // Auto mode - highlight based on hours
+        if (hoursStatus.isOpen) {
+            document.querySelector('.status-btn.open').classList.add('active');
+            document.querySelector('.status-btn.closed').classList.remove('active');
+        } else {
+            document.querySelector('.status-btn.open').classList.remove('active');
+            document.querySelector('.status-btn.closed').classList.add('active');
+        }
     }
     
     document.getElementById('profileAvatarInitials').textContent = initial;
@@ -2057,6 +2207,10 @@ function applyVendorUI() {
         <div style="display:flex;align-items:center;gap:10px;padding:6px 0;">
             <i data-lucide="tag" style="width:15px;height:15px;color:var(--accent);flex-shrink:0;"></i>
             <span style="font-size:0.85rem;color:var(--dim);">Min order: R ${Number(vendorData.minOrderValue || vendorData.minOrder || 0).toFixed(2)}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--border);margin-top:6px;">
+            <i data-lucide="navigation" style="width:15px;height:15px;color:var(--accent);flex-shrink:0;"></i>
+            <span style="font-size:0.85rem;color:var(--dim);">Delivery radius: ${vendorData.deliveryRadius || '5'} km</span>
         </div>
     `;
     setTimeout(() => lucide.createIcons(), 50);
@@ -2940,6 +3094,7 @@ setInterval(() => {
                 '<span class="badge badge-open"><i data-lucide="sun" style="width:12px;height:12px;"></i> OPEN</span>' : 
                 '<span class="badge badge-closed"><i data-lucide="moon" style="width:12px;height:12px;"></i> CLOSED</span>';
         }
+        updateStoreStatusDisplay();
         lucide.createIcons();
     }
 }, 60000);
