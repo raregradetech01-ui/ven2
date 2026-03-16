@@ -48,6 +48,151 @@
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--dim); }
 
+        /* ── PILL INPUT GLOBAL OVERRIDE ── */
+        input[type="text"], input[type="email"], input[type="tel"], input[type="number"],
+        input[type="password"], input[type="url"], input[type="time"], input[type="file"],
+        select, textarea {
+            border-radius: 999px !important;
+        }
+        textarea { border-radius: 20px !important; }
+        input[type="file"] { border-radius: 999px !important; }
+
+        /* ── AUTH SCREEN ── */
+        #authScreen {
+            position: fixed; inset: 0; z-index: 8000;
+            background: linear-gradient(135deg, #0d1f14 0%, #0a2e1a 50%, #0d1f14 100%);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        #authScreen.hidden { display: none; }
+
+        .auth-bg-circles {
+            position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+        }
+        .auth-circle {
+            position: absolute; border-radius: 50%;
+            background: radial-gradient(circle, rgba(6,193,103,0.15) 0%, transparent 70%);
+        }
+        .auth-circle:nth-child(1) { width: 600px; height: 600px; top: -200px; right: -100px; }
+        .auth-circle:nth-child(2) { width: 400px; height: 400px; bottom: -100px; left: -50px; }
+        .auth-circle:nth-child(3) { width: 300px; height: 300px; top: 40%; left: 40%; }
+
+        .auth-card {
+            background: rgba(255,255,255,0.04);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(6,193,103,0.2);
+            border-radius: 28px;
+            padding: 44px 40px;
+            width: 100%;
+            max-width: 460px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+        }
+
+        .auth-logo {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 32px; justify-content: center;
+        }
+        .auth-logo-icon { color: var(--accent); width: 32px; height: 32px; }
+        .auth-logo-text {
+            font-size: 1.6rem; font-weight: 800; color: white; letter-spacing: -1px;
+        }
+        .auth-logo-text span { color: var(--accent); }
+
+        .auth-tabs {
+            display: flex; background: rgba(255,255,255,0.06); border-radius: 999px;
+            padding: 4px; margin-bottom: 28px; gap: 4px;
+        }
+        .auth-tab {
+            flex: 1; padding: 10px; border-radius: 999px; border: none;
+            background: transparent; color: rgba(255,255,255,0.5);
+            font-family: inherit; font-weight: 600; font-size: 0.88rem;
+            cursor: pointer; transition: var(--transition);
+        }
+        .auth-tab.active {
+            background: var(--accent); color: white;
+            box-shadow: 0 4px 12px rgba(6,193,103,0.4);
+        }
+
+        .auth-title {
+            font-size: 1.3rem; font-weight: 800; color: white;
+            margin-bottom: 6px; text-align: center;
+        }
+        .auth-sub { color: rgba(255,255,255,0.5); font-size: 0.86rem; text-align: center; margin-bottom: 24px; }
+
+        .auth-form { display: flex; flex-direction: column; gap: 14px; }
+        .auth-form-group { display: flex; flex-direction: column; gap: 6px; }
+        .auth-form-group label {
+            font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.5);
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .auth-input {
+            padding: 13px 18px !important;
+            background: rgba(255,255,255,0.07) !important;
+            border: 1.5px solid rgba(255,255,255,0.1) !important;
+            border-radius: 999px !important;
+            color: white !important;
+            font-family: inherit; font-size: 0.92rem;
+            outline: none; transition: var(--transition);
+            width: 100%;
+        }
+        .auth-input::placeholder { color: rgba(255,255,255,0.3); }
+        .auth-input:focus {
+            border-color: var(--accent) !important;
+            background: rgba(6,193,103,0.08) !important;
+            box-shadow: 0 0 0 3px rgba(6,193,103,0.15) !important;
+        }
+        .auth-input option { background: #1a2e22; color: white; }
+
+        .auth-btn {
+            background: var(--accent); color: white; border: none;
+            padding: 14px; border-radius: 999px; font-weight: 700;
+            font-family: inherit; font-size: 0.95rem; cursor: pointer;
+            transition: var(--transition); margin-top: 6px;
+            box-shadow: 0 6px 20px rgba(6,193,103,0.4);
+        }
+        .auth-btn:hover {
+            background: var(--accent-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(6,193,103,0.5);
+        }
+        .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .auth-divider {
+            display: flex; align-items: center; gap: 12px; margin: 4px 0;
+            color: rgba(255,255,255,0.25); font-size: 0.8rem;
+        }
+        .auth-divider::before, .auth-divider::after {
+            content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1);
+        }
+
+        .auth-error {
+            background: rgba(255,59,48,0.15); border: 1px solid rgba(255,59,48,0.3);
+            border-radius: 12px; padding: 12px 16px; color: #ff6b63;
+            font-size: 0.84rem; font-weight: 600; display: none;
+        }
+        .auth-success {
+            background: rgba(6,193,103,0.15); border: 1px solid rgba(6,193,103,0.3);
+            border-radius: 12px; padding: 12px 16px; color: var(--accent);
+            font-size: 0.84rem; font-weight: 600; display: none;
+        }
+
+        .auth-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        /* Registration steps */
+        .reg-step { display: none; }
+        .reg-step.active { display: flex; flex-direction: column; gap: 14px; }
+        .step-indicator {
+            display: flex; gap: 8px; justify-content: center; margin-bottom: 20px;
+        }
+        .step-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.2); transition: var(--transition);
+        }
+        .step-dot.active { background: var(--accent); width: 24px; border-radius: 4px; }
+        .step-dot.done { background: var(--accent); }
+
         /* ── SHIMMER LOADER ── */
         #shimmerOverlay {
             position: fixed; inset: 0; z-index: 9999;
@@ -133,9 +278,19 @@
         .nav-text { opacity: 0; transform: translateX(-8px); transition: opacity 0.2s ease, transform 0.2s ease; pointer-events: none; }
         .sidebar.expanded .nav-text { opacity: 1; transform: translateX(0); }
 
+        /* Logout button in sidebar */
+        .logout-btn {
+            padding: 13px 12px; margin-top: 8px; border-radius: 14px;
+            cursor: pointer; transition: var(--transition); font-weight: 600;
+            display: flex; align-items: center; gap: 12px; color: var(--danger);
+            white-space: nowrap; border: none; background: transparent;
+            font-family: inherit; font-size: inherit; width: 100%;
+        }
+        .logout-btn:hover { background: #fff1f0; }
+
         .user-profile {
             padding: 10px; background: var(--bg); border-radius: 14px;
-            display: flex; align-items: center; gap: 12px; margin-top: auto;
+            display: flex; align-items: center; gap: 12px;
             cursor: pointer; transition: var(--transition); border: 1px solid transparent;
             overflow: hidden; white-space: nowrap;
         }
@@ -197,7 +352,7 @@
 
         /* ── TABLE ── */
         .search-bar {
-            padding: 11px 16px; border: 1px solid var(--border); border-radius: 12px;
+            padding: 11px 18px; border: 1.5px solid var(--border); border-radius: 999px !important;
             font-family: inherit; font-size: 0.9rem; outline: none; transition: var(--transition);
             background: var(--bg); color: var(--text); width: 280px;
         }
@@ -224,7 +379,7 @@
         .btn-primary:hover { background: var(--accent-dark); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(6,193,103,0.45); }
 
         .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
-        .btn { padding: 7px 13px; border-radius: 999px; border: none; cursor: pointer; font-weight: 600; transition: var(--transition); font-size: 0.8rem; display: flex; align-items: center; gap: 5px; font-family: inherit; white-space: nowrap; }
+        .btn { padding: 7px 16px; border-radius: 999px; border: none; cursor: pointer; font-weight: 600; transition: var(--transition); font-size: 0.8rem; display: flex; align-items: center; gap: 5px; font-family: inherit; white-space: nowrap; }
         .btn-edit { background: var(--surface2); color: var(--text); }
         .btn-edit:hover { background: var(--border); transform: translateY(-1px); }
         .btn-danger { background: #fff1f0; color: var(--danger); }
@@ -252,10 +407,11 @@
         .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.4px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .modal-content input, .modal-content select, .modal-content textarea {
-            width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
-            border-radius: 12px; font-size: 0.92rem; outline: none; transition: var(--transition);
+            width: 100%; padding: 12px 18px; border: 1.5px solid var(--border);
+            border-radius: 999px !important; font-size: 0.92rem; outline: none; transition: var(--transition);
             font-family: inherit; background: var(--bg); color: var(--text);
         }
+        .modal-content textarea { border-radius: 16px !important; }
         .modal-content input:focus, .modal-content select:focus, .modal-content textarea:focus {
             border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.12); background: white;
         }
@@ -288,6 +444,15 @@
         .profile-section { background: white; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); padding: 28px; margin-bottom: 20px; }
         .profile-section h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
         .profile-section h3 i { color: var(--accent); }
+        .profile-section input, .profile-section select {
+            width: 100%; padding: 12px 18px; border: 1.5px solid var(--border);
+            border-radius: 999px !important; font-size: 0.92rem; outline: none; transition: var(--transition);
+            font-family: inherit; background: var(--bg); color: var(--text);
+        }
+        .profile-section input:focus, .profile-section select:focus {
+            border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.12); background: white;
+        }
+
         .profile-header { display: flex; align-items: center; gap: 20px; margin-bottom: 28px; }
         .profile-avatar-wrap { position: relative; }
         .profile-avatar {
@@ -303,8 +468,32 @@
         .order-card { padding: 18px 24px; border-bottom: 1px solid var(--border); transition: var(--transition); }
         .order-card:hover { background: #fafcfa; }
         .order-card:last-child { border-bottom: none; }
-        .order-status-bar { display: flex; gap: 8px; margin: 8px 0; }
-        .order-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+
+        /* ── DRIVERS PAGE ── */
+        .driver-card {
+            background: white; border-radius: 16px; padding: 20px;
+            border: 1px solid var(--border); box-shadow: var(--shadow);
+            transition: var(--transition); display: flex; align-items: center; gap: 16px;
+        }
+        .driver-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+        .driver-avatar {
+            width: 52px; height: 52px; border-radius: 999px; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--purple), #7473e8);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 700; font-size: 1rem;
+        }
+        .driver-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .driver-status-dot.online { background: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.2); }
+        .driver-status-dot.offline { background: var(--dim); }
+        .driver-status-dot.busy { background: var(--warning); box-shadow: 0 0 0 3px rgba(255,149,0,0.2); }
+
+        /* ── FEATURED SECTION ── */
+        .featured-banner {
+            background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%);
+            border: 1px solid var(--yellow);
+            border-radius: 16px; padding: 16px 20px; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 12px;
+        }
 
         /* ── EMPTY STATES ── */
         .empty-state { text-align: center; padding: 56px 24px; color: var(--dim); }
@@ -314,7 +503,7 @@
         .toast {
             position: fixed; bottom: 24px; right: 24px;
             background: var(--text); color: white; padding: 15px 22px;
-            border-radius: 14px; box-shadow: var(--shadow-hover);
+            border-radius: 999px; box-shadow: var(--shadow-hover);
             display: flex; align-items: center; gap: 12px;
             transform: translateY(100px); opacity: 0;
             transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
@@ -331,20 +520,6 @@
         .toggle::after { content: ''; position: absolute; width: 22px; height: 22px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: transform .3s cubic-bezier(.4,0,.2,1); box-shadow: 0 2px 4px rgba(0,0,0,.2); }
         .toggle.on::after { transform: translateX(22px); }
 
-        /* ── QUICK ACTIONS ── */
-        .quick-actions { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-top: 24px; }
-        .quick-btn {
-            padding: 20px; border-radius: 16px; border: 1px solid var(--border);
-            background: white; cursor: pointer; transition: var(--transition);
-            display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
-        }
-        .quick-btn:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: var(--shadow-hover); }
-        .quick-btn span { font-weight: 600; font-size: 0.88rem; }
-        .quick-btn small { color: var(--dim); font-size: 0.76rem; }
-
-        /* ── SECTION DIVIDER ── */
-        .section-divider { height: 1px; background: var(--border); margin: 20px 0; }
-
         /* ── CHART BARS ── */
         .chart-container { padding: 20px; height: 220px; display: flex; align-items: flex-end; justify-content: space-around; gap: 10px; overflow: hidden; }
         .bar-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; max-width: 60px; }
@@ -354,25 +529,186 @@
         .bar-val { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-weight: 700; font-size: 0.75rem; opacity: 0; transition: opacity .2s; white-space: nowrap; color: var(--text); }
         .bar:hover .bar-val { opacity: 1; }
 
-        /* ── PERSON INFO ── */
-        .person-info { display: flex; align-items: center; gap: 12px; }
-        .person-avatar { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; border: 2px solid var(--border); }
-
         @keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.5;transform:scale(1.1);} }
         @keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
+        /* ── SETTINGS ROWS ── */
+        .settings-row { display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);gap:12px; }
+        .settings-row:last-child { border-bottom:none; }
+        #settings .form-group input, #settings .form-group select {
+            border-radius: 999px !important;
+            padding: 12px 18px;
+            border: 1.5px solid var(--border);
+            font-family: inherit; font-size: 0.92rem; outline: none;
+            transition: var(--transition); background: var(--bg); color: var(--text);
+        }
+        #settings .form-group input:focus, #settings .form-group select:focus {
+            border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.12); background: white;
+        }
+
+        /* ── DAY LABELS ── */
+        .day-label { display:flex;align-items:center;gap:5px;font-size:0.83rem;font-weight:600;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:7px 16px;cursor:pointer;transition:var(--transition); }
+        .day-label.checked { background:var(--accent);border-color:var(--accent);color:white; }
+        .day-label input[type=checkbox] { display:none; }
 
         @media (max-width: 768px) {
             .main-panel { padding: 20px; }
             .form-row { grid-template-columns: 1fr; }
-            .quick-actions { grid-template-columns: 1fr 1fr; }
             .stats-grid { grid-template-columns: 1fr 1fr; }
+            .auth-form-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
+<!-- ══ AUTH SCREEN ══ -->
+<div id="authScreen">
+    <div class="auth-bg-circles">
+        <div class="auth-circle"></div>
+        <div class="auth-circle"></div>
+        <div class="auth-circle"></div>
+    </div>
+    <div class="auth-card">
+        <div class="auth-logo">
+            <i data-lucide="utensils" class="auth-logo-icon"></i>
+            <div class="auth-logo-text">VYNIX<span>EATS</span></div>
+        </div>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+            <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+        </div>
+
+        <!-- LOGIN PANEL -->
+        <div id="loginPanel">
+            <div class="auth-title">Welcome Back 👋</div>
+            <div class="auth-sub">Sign in with your Vendor ID issued by admin</div>
+            <div class="auth-error" id="loginError"></div>
+            <div class="auth-form">
+                <div class="auth-form-group">
+                    <label>Vendor ID</label>
+                    <input type="text" class="auth-input" id="loginVendorId" placeholder="e.g. VYX-00123" autocomplete="off">
+                </div>
+                <button class="auth-btn" onclick="doLogin()" id="loginBtn">
+                    Sign In to Portal
+                </button>
+            </div>
+            <div class="auth-divider" style="margin-top:18px;">Don't have an account?</div>
+            <button class="auth-btn" style="background:transparent;border:1.5px solid rgba(6,193,103,0.4);color:var(--accent);box-shadow:none;margin-top:8px;" onclick="switchAuthTab('register')">
+                Register Your Restaurant
+            </button>
+        </div>
+
+        <!-- REGISTER PANEL -->
+        <div id="registerPanel" style="display:none;">
+            <div class="step-indicator" id="stepIndicator">
+                <div class="step-dot active" id="dot-0"></div>
+                <div class="step-dot" id="dot-1"></div>
+                <div class="step-dot" id="dot-2"></div>
+            </div>
+            <div class="auth-error" id="regError"></div>
+            <div class="auth-success" id="regSuccess"></div>
+
+            <!-- Step 1: Business Info -->
+            <div class="reg-step active" id="regStep0">
+                <div class="auth-title">Restaurant Details</div>
+                <div class="auth-sub">Tell us about your business</div>
+                <div class="auth-form-group">
+                    <label>Restaurant / Business Name *</label>
+                    <input type="text" class="auth-input" id="reg-name" placeholder="e.g. Pizza Palace">
+                </div>
+                <div class="auth-form-group">
+                    <label>Cuisine Category *</label>
+                    <select class="auth-input" id="reg-cuisine-cat">
+                        <option value="">Select category…</option>
+                        <option value="Fast Food">Fast Food</option>
+                        <option value="Pizza">Pizza</option>
+                        <option value="Burgers">Burgers</option>
+                        <option value="Chicken">Chicken</option>
+                        <option value="Sushi">Sushi</option>
+                        <option value="Indian">Indian</option>
+                        <option value="Chinese">Chinese</option>
+                        <option value="Italian">Italian</option>
+                        <option value="African">African</option>
+                        <option value="Healthy / Salads">Healthy / Salads</option>
+                        <option value="Desserts / Bakery">Desserts / Bakery</option>
+                        <option value="Drinks / Beverages">Drinks / Beverages</option>
+                        <option value="Halaal">Halaal</option>
+                        <option value="Vegan / Vegetarian">Vegan / Vegetarian</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="auth-form-row">
+                    <div class="auth-form-group">
+                        <label>City / Town *</label>
+                        <input type="text" class="auth-input" id="reg-city" placeholder="e.g. Johannesburg">
+                    </div>
+                    <div class="auth-form-group">
+                        <label>Province *</label>
+                        <select class="auth-input" id="reg-province">
+                            <option value="">Province…</option>
+                            <option value="Gauteng">Gauteng</option>
+                            <option value="Western Cape">Western Cape</option>
+                            <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                            <option value="Eastern Cape">Eastern Cape</option>
+                            <option value="Limpopo">Limpopo</option>
+                            <option value="Mpumalanga">Mpumalanga</option>
+                            <option value="North West">North West</option>
+                            <option value="Free State">Free State</option>
+                            <option value="Northern Cape">Northern Cape</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="auth-btn" onclick="regNext(0)">Next Step →</button>
+            </div>
+
+            <!-- Step 2: Contact Info -->
+            <div class="reg-step" id="regStep1">
+                <div class="auth-title">Contact Information</div>
+                <div class="auth-sub">How can we reach you?</div>
+                <div class="auth-form-group">
+                    <label>Owner / Contact Person *</label>
+                    <input type="text" class="auth-input" id="reg-owner" placeholder="Full name">
+                </div>
+                <div class="auth-form-row">
+                    <div class="auth-form-group">
+                        <label>Phone Number *</label>
+                        <input type="tel" class="auth-input" id="reg-phone" placeholder="+27 71 000 0000">
+                    </div>
+                    <div class="auth-form-group">
+                        <label>WhatsApp</label>
+                        <input type="tel" class="auth-input" id="reg-whatsapp" placeholder="+27 71 000 0000">
+                    </div>
+                </div>
+                <div class="auth-form-group">
+                    <label>Email Address *</label>
+                    <input type="email" class="auth-input" id="reg-email" placeholder="owner@restaurant.co.za">
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button class="auth-btn" style="background:rgba(255,255,255,0.1);box-shadow:none;flex:1;" onclick="regBack(1)">← Back</button>
+                    <button class="auth-btn" style="flex:2;" onclick="regNext(1)">Next Step →</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Final Details -->
+            <div class="reg-step" id="regStep2">
+                <div class="auth-title">Almost Done!</div>
+                <div class="auth-sub">Optional business details before submitting</div>
+                <div class="auth-form-group">
+                    <label>Business Reg. No. (optional)</label>
+                    <input type="text" class="auth-input" id="reg-regno" placeholder="e.g. 2021/123456/07">
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <button class="auth-btn" style="background:rgba(255,255,255,0.1);box-shadow:none;flex:1;" onclick="regBack(2)">← Back</button>
+                    <button class="auth-btn" style="flex:2;" onclick="submitRegistration()" id="regSubmitBtn">Submit Application</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- SHIMMER LOADER -->
-<div id="shimmerOverlay">
+<div id="shimmerOverlay" style="display:none;">
     <div class="shim-sidebar">
         <div class="shim-block shim-logo"></div>
         <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px;">
@@ -399,13 +735,12 @@
 </div>
 
 <!-- SIDEBAR -->
-<nav class="sidebar" id="mainSidebar">
+<nav class="sidebar" id="mainSidebar" style="display:none;">
     <div class="logo">
         <i data-lucide="utensils" class="logo-icon"></i>
         <span class="logo-text">VYNIX<span>EATS</span></span>
     </div>
 
-    <!-- Vendor status chip (visible when expanded) -->
     <div class="vendor-chip" id="vendorChip">
         <div class="vendor-chip-dot"></div>
         <div style="min-width:0;">
@@ -425,9 +760,17 @@
                 <i data-lucide="book-open" class="nav-icon"></i>
                 <span class="nav-text">Menu Items</span>
             </div>
+            <div class="nav-item" onclick="showTab('featured',this)">
+                <i data-lucide="star" class="nav-icon"></i>
+                <span class="nav-text">Featured Items</span>
+            </div>
             <div class="nav-item" onclick="showTab('orders',this)">
                 <i data-lucide="shopping-bag" class="nav-icon"></i>
                 <span class="nav-text">Orders</span>
+            </div>
+            <div class="nav-item" onclick="showTab('drivers',this)">
+                <i data-lucide="bike" class="nav-icon"></i>
+                <span class="nav-text">Drivers</span>
             </div>
             <div class="nav-item" onclick="showTab('analytics',this)">
                 <i data-lucide="bar-chart-3" class="nav-icon"></i>
@@ -444,6 +787,10 @@
                 <i data-lucide="settings" class="nav-icon"></i>
                 <span class="nav-text">Settings</span>
             </div>
+            <button class="logout-btn" onclick="doLogout()">
+                <i data-lucide="log-out" class="nav-icon" style="color:var(--danger);"></i>
+                <span class="nav-text">Log Out</span>
+            </button>
         </div>
     </div>
 
@@ -457,7 +804,7 @@
 </nav>
 
 <!-- MAIN PANEL -->
-<main class="main-panel" id="mainPanel">
+<main class="main-panel" id="mainPanel" style="display:none;">
 
 <!-- ══ DASHBOARD ══ -->
 <section id="dashboard" class="page-content active">
@@ -471,7 +818,6 @@
         </button>
     </div>
 
-    <!-- Status Banner -->
     <div id="statusBanner" style="border-radius:16px;padding:16px 22px;margin-bottom:24px;display:flex;align-items:center;gap:14px;border:1px solid var(--accent);background:var(--accent-light);">
         <div style="width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(6,193,103,0.2);flex-shrink:0;animation:pulse 2s infinite;"></div>
         <div>
@@ -481,12 +827,16 @@
         <div style="margin-left:auto;" id="bannerBadge"><span class="badge badge-active">ACTIVE</span></div>
     </div>
 
-    <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-icon"><i data-lucide="package" style="width:20px;height:20px;color:var(--accent);"></i></div>
             <h3>Menu Items</h3>
             <p id="stat-menu">0</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i data-lucide="star" style="width:20px;height:20px;color:var(--yellow);"></i></div>
+            <h3>Featured Items</h3>
+            <p id="stat-featured" style="color:var(--yellow);">0</p>
         </div>
         <div class="stat-card">
             <div class="stat-icon"><i data-lucide="shopping-bag" style="width:20px;height:20px;color:var(--purple);"></i></div>
@@ -505,12 +855,11 @@
         </div>
     </div>
 
-    <!-- Recent Orders + Quick Actions -->
     <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;">
         <div class="content-card">
             <div class="card-header">
                 <h2><i data-lucide="clock" style="width:18px;height:18px;color:var(--accent);"></i> Recent Orders</h2>
-                <button class="btn btn-edit" onclick="showTab('orders',document.querySelectorAll('.nav-item')[2])">View All</button>
+                <button class="btn btn-edit" onclick="showTab('orders',document.querySelectorAll('.nav-item')[3])">View All</button>
             </div>
             <div id="recentOrdersList">
                 <div class="empty-state">
@@ -530,10 +879,13 @@
                     <button class="btn-primary" style="width:100%;justify-content:center;" onclick="openAddItemModal()">
                         <i data-lucide="plus" style="width:16px;height:16px;"></i> Add Menu Item
                     </button>
-                    <button class="btn btn-edit" style="width:100%;justify-content:center;padding:13px;" onclick="showTab('profile',document.querySelectorAll('.nav-item')[4])">
+                    <button class="btn btn-edit" style="width:100%;justify-content:center;padding:13px;" onclick="showTab('featured',document.querySelectorAll('.nav-item')[2])">
+                        <i data-lucide="star" style="width:16px;height:16px;"></i> Manage Featured
+                    </button>
+                    <button class="btn btn-edit" style="width:100%;justify-content:center;padding:13px;" onclick="showTab('profile',document.querySelectorAll('.nav-item')[6])">
                         <i data-lucide="edit-2" style="width:16px;height:16px;"></i> Edit Store Profile
                     </button>
-                    <button class="btn btn-edit" style="width:100%;justify-content:center;padding:13px;" onclick="showTab('analytics',document.querySelectorAll('.nav-item')[3])">
+                    <button class="btn btn-edit" style="width:100%;justify-content:center;padding:13px;" onclick="showTab('analytics',document.querySelectorAll('.nav-item')[5])">
                         <i data-lucide="bar-chart-3" style="width:16px;height:16px;"></i> View Analytics
                     </button>
                 </div>
@@ -574,11 +926,61 @@
             </button>
         </div>
     </div>
-
     <div id="menuGrid" class="menu-grid">
         <div class="empty-state" style="grid-column:1/-1;">
             <i data-lucide="loader-2" style="width:44px;height:44px;display:block;margin:0 auto 12px;animation:spin 1s linear infinite;"></i>
             Loading menu items…
+        </div>
+    </div>
+</section>
+
+<!-- ══ FEATURED ITEMS ══ -->
+<section id="featured" class="page-content">
+    <div class="page-header">
+        <h1>Featured Items</h1>
+        <button class="btn-primary" onclick="openAddItemModal()">
+            <i data-lucide="plus" style="width:18px;height:18px;"></i> Add Item
+        </button>
+    </div>
+
+    <div class="featured-banner">
+        <i data-lucide="star" style="width:22px;height:22px;color:#f59e0b;flex-shrink:0;"></i>
+        <div>
+            <div style="font-weight:700;color:#92400e;">Featured items appear on the customer app homepage</div>
+            <div style="font-size:0.82rem;color:#b45309;margin-top:2px;">Mark items as Featured to showcase your best dishes to customers. Featured items appear in a dedicated spotlight section on the customer dashboard.</div>
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+        <div class="content-card">
+            <div class="card-header">
+                <h2><i data-lucide="star" style="width:18px;height:18px;color:var(--yellow);"></i> Currently Featured <span id="featuredCount" style="background:var(--yellow);color:#5a3e00;border-radius:999px;padding:2px 10px;font-size:0.72rem;margin-left:6px;">0</span></h2>
+            </div>
+            <div id="featuredItemsList" style="padding:16px;">
+                <div style="color:var(--dim);text-align:center;padding:20px;font-size:0.88rem;">No featured items yet</div>
+            </div>
+        </div>
+        <div class="content-card">
+            <div class="card-header">
+                <h2><i data-lucide="package" style="width:18px;height:18px;color:var(--dim);"></i> All Items — Toggle Featured</h2>
+            </div>
+            <div id="featuredToggleList" style="padding:16px;max-height:400px;overflow-y:auto;">
+                <div style="color:var(--dim);text-align:center;padding:20px;font-size:0.88rem;">Loading…</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-card">
+        <div class="card-header">
+            <h2><i data-lucide="eye" style="width:18px;height:18px;color:var(--accent);"></i> Customer App Preview</h2>
+        </div>
+        <div style="padding:20px;">
+            <div style="background:linear-gradient(135deg,#0d1f14,#0a2e1a);border-radius:20px;padding:24px;color:white;">
+                <div style="font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.5);margin-bottom:12px;font-weight:700;">⭐ Featured Dishes</div>
+                <div id="featuredPreviewCards" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;">
+                    <div style="color:rgba(255,255,255,0.4);font-size:0.88rem;padding:20px;">No featured items to preview</div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -599,11 +1001,53 @@
             </select>
         </div>
     </div>
-
     <div class="content-card" id="ordersContainer">
         <div class="empty-state">
             <i data-lucide="shopping-bag" style="width:48px;height:48px;display:block;margin:0 auto 12px;opacity:.4;"></i>
             No orders found
+        </div>
+    </div>
+</section>
+
+<!-- ══ DRIVERS ══ -->
+<section id="drivers" class="page-content">
+    <div class="page-header">
+        <h1>Drivers</h1>
+        <button class="btn-primary" onclick="showModal('addDriverModal')">
+            <i data-lucide="plus" style="width:18px;height:18px;"></i> Add Driver
+        </button>
+    </div>
+
+    <!-- Driver Stats -->
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+        <div class="stat-card">
+            <div class="stat-icon"><i data-lucide="users" style="width:20px;height:20px;color:var(--accent);"></i></div>
+            <h3>Total Drivers</h3>
+            <p id="dstat-total">0</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i data-lucide="wifi" style="width:20px;height:20px;color:var(--accent);"></i></div>
+            <h3>Online</h3>
+            <p id="dstat-online" style="color:var(--accent);">0</p>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i data-lucide="package" style="width:20px;height:20px;color:var(--warning);"></i></div>
+            <h3>On Delivery</h3>
+            <p id="dstat-busy" style="color:var(--warning);">0</p>
+        </div>
+    </div>
+
+    <div class="content-card">
+        <div class="card-header">
+            <h2><i data-lucide="bike" style="width:18px;height:18px;color:var(--accent);"></i> Driver Roster</h2>
+            <input type="text" class="search-bar" style="width:220px;" placeholder="Search drivers…" oninput="filterDrivers(this.value)" id="driverSearch">
+        </div>
+        <div id="driversGrid" style="padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+            <div class="empty-state" style="grid-column:1/-1;">
+                <i data-lucide="bike" style="width:48px;height:48px;display:block;margin:0 auto 12px;opacity:.4;"></i>
+                <p style="font-weight:600;margin-bottom:4px;">No drivers yet</p>
+                <p style="font-size:0.85rem;">Add drivers to manage your delivery fleet</p>
+            </div>
         </div>
     </div>
 </section>
@@ -613,7 +1057,6 @@
     <div class="page-header">
         <h1>Analytics</h1>
     </div>
-
     <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
         <div class="stat-card">
             <h3>Active Items</h3>
@@ -628,7 +1071,6 @@
             <p id="ana-revenue" style="color:var(--accent);">R 0</p>
         </div>
     </div>
-
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
         <div class="content-card">
             <div class="card-header">
@@ -643,8 +1085,6 @@
             <div class="chart-container" id="ordersChart"></div>
         </div>
     </div>
-
-    <!-- Price Range Analysis -->
     <div class="content-card" style="margin-top:20px;">
         <div class="card-header">
             <h2><i data-lucide="tag" style="width:18px;height:18px;color:var(--accent);"></i> Menu Pricing Breakdown</h2>
@@ -662,7 +1102,6 @@
         </button>
     </div>
 
-    <!-- Store Identity -->
     <div class="profile-section">
         <h3><i data-lucide="store" style="width:16px;height:16px;"></i> Business Identity</h3>
         <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px;">
@@ -676,7 +1115,7 @@
             </div>
             <div style="margin-left:auto;">
                 <div style="font-size:0.8rem;color:var(--dim);margin-bottom:4px;font-weight:600;">Vendor ID</div>
-                <div style="font-family:monospace;font-weight:700;font-size:0.92rem;background:var(--bg);padding:6px 12px;border-radius:8px;border:1px solid var(--border);" id="profileVendorID">—</div>
+                <div style="font-family:monospace;font-weight:700;font-size:0.92rem;background:var(--bg);padding:6px 16px;border-radius:999px;border:1px solid var(--border);" id="profileVendorID">—</div>
             </div>
         </div>
         <div class="form-row">
@@ -712,7 +1151,6 @@
         </div>
     </div>
 
-    <!-- Contact Details -->
     <div class="profile-section">
         <h3><i data-lucide="phone" style="width:16px;height:16px;"></i> Contact Details</h3>
         <div class="form-row">
@@ -726,7 +1164,6 @@
         <div class="form-group"><label>Website / Social Media</label><input type="url" id="p-website" placeholder="https://www.business.co.za or @handle"></div>
     </div>
 
-    <!-- Location -->
     <div class="profile-section">
         <h3><i data-lucide="map-pin" style="width:16px;height:16px;"></i> Location</h3>
         <div class="form-group"><label>Street Address</label><input type="text" id="p-street" placeholder="e.g. 12 Main Street"></div>
@@ -766,7 +1203,6 @@
         </div>
     </div>
 
-    <!-- Operating Hours -->
     <div class="profile-section">
         <h3><i data-lucide="clock" style="width:16px;height:16px;"></i> Operating Hours</h3>
         <div class="form-row">
@@ -786,12 +1222,6 @@
             </div>
         </div>
     </div>
-
-    <style>
-        .day-label { display:flex;align-items:center;gap:5px;font-size:0.83rem;font-weight:600;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer;transition:var(--transition); }
-        .day-label.checked { background:var(--accent);border-color:var(--accent);color:white; }
-        .day-label input[type=checkbox] { display:none; }
-    </style>
 </section>
 
 <!-- ══ SETTINGS ══ -->
@@ -804,7 +1234,6 @@
     </div>
 
     <div style="display:grid;gap:20px;max-width:680px;">
-        <!-- Store Availability -->
         <div style="background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:24px;">
             <h3 style="font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
                 <i data-lucide="store" style="width:18px;height:18px;color:var(--accent);"></i> Store Availability
@@ -827,7 +1256,6 @@
             </div>
         </div>
 
-        <!-- Notifications -->
         <div style="background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:24px;">
             <h3 style="font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
                 <i data-lucide="bell-ring" style="width:18px;height:18px;color:var(--accent);"></i> Notifications
@@ -842,7 +1270,6 @@
             </div>
         </div>
 
-        <!-- Fees -->
         <div style="background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:24px;">
             <h3 style="font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
                 <i data-lucide="tag" style="width:18px;height:18px;color:var(--accent);"></i> Delivery Fees
@@ -851,14 +1278,25 @@
                 <div class="form-group"><label>Delivery Fee (R)</label><input type="number" id="s-deliveryfee" placeholder="e.g. 30" min="0"></div>
                 <div class="form-group"><label>Free Delivery Over (R)</label><input type="number" id="s-freedeilvery" placeholder="e.g. 300" min="0"></div>
             </div>
-            <div class="form-group"><label>Estimated Delivery Time (mins)</label><input type="text" id="s-deliverytime" placeholder="e.g. 25-40" style="max-width:200px;"></div>
+            <div class="form-group"><label>Estimated Delivery Time (mins)</label><input type="text" id="s-deliverytime" placeholder="e.g. 25-40" style="max-width:220px;"></div>
+        </div>
+
+        <!-- Logout Card -->
+        <div style="background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:24px;">
+            <h3 style="font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;color:var(--danger);">
+                <i data-lucide="log-out" style="width:18px;height:18px;"></i> Session
+            </h3>
+            <div class="settings-row">
+                <div>
+                    <div style="font-weight:600;">Signed in as</div>
+                    <div style="font-size:0.82rem;color:var(--dim);" id="settingsSignedInAs">Vendor</div>
+                </div>
+                <button class="btn btn-danger" onclick="doLogout()" style="padding:10px 20px;">
+                    <i data-lucide="log-out" style="width:14px;height:14px;"></i> Log Out
+                </button>
+            </div>
         </div>
     </div>
-
-    <style>
-        .settings-row { display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);gap:12px; }
-        .settings-row:last-child { border-bottom:none; }
-    </style>
 </section>
 
 </main>
@@ -912,7 +1350,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Special / Featured</label>
+                <label>⭐ Featured on Customer App</label>
                 <select id="item-featured">
                     <option value="false">Regular Item</option>
                     <option value="true">Featured / Special</option>
@@ -942,6 +1380,62 @@
                 <i data-lucide="trash-2" style="width:15px;height:15px;"></i> Delete
             </button>
             <button class="btn btn-edit" style="flex:1;justify-content:center;padding:14px;" onclick="hideModal('deleteModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Driver Modal -->
+<div class="modal-overlay" id="addDriverModal">
+    <div class="modal-content">
+        <h3><i data-lucide="bike" style="width:22px;height:22px;color:var(--accent);"></i> Add Driver</h3>
+        <input type="hidden" id="driver-key">
+        <div class="form-row">
+            <div class="form-group"><label>Full Name *</label><input type="text" id="drv-name" placeholder="e.g. Sipho Dlamini"></div>
+            <div class="form-group"><label>Phone Number *</label><input type="tel" id="drv-phone" placeholder="+27 71 000 0000"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>ID Number</label><input type="text" id="drv-idno" placeholder="SA ID number"></div>
+            <div class="form-group"><label>Vehicle Type</label>
+                <select id="drv-vehicle">
+                    <option value="motorcycle">Motorcycle</option>
+                    <option value="bicycle">Bicycle</option>
+                    <option value="car">Car</option>
+                    <option value="scooter">Scooter</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Vehicle Plate</label><input type="text" id="drv-plate" placeholder="e.g. GP 123-456"></div>
+            <div class="form-group"><label>Status</label>
+                <select id="drv-status">
+                    <option value="offline">Offline</option>
+                    <option value="online">Online / Available</option>
+                    <option value="busy">On Delivery</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-btn-row">
+            <button class="btn-primary" style="flex:2;justify-content:center;" onclick="saveDriver()">
+                <i data-lucide="check" style="width:16px;height:16px;"></i> Save Driver
+            </button>
+            <button class="btn btn-edit" style="flex:1;justify-content:center;padding:14px;" onclick="hideModal('addDriverModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Logout Confirm -->
+<div class="modal-overlay" id="logoutModal">
+    <div class="modal-content" style="max-width:380px;text-align:center;">
+        <div style="width:64px;height:64px;border-radius:50%;background:#fff1f0;border:2px solid #ffcdc9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <i data-lucide="log-out" style="width:28px;height:28px;color:var(--danger);"></i>
+        </div>
+        <h3 style="justify-content:center;">Log Out?</h3>
+        <p style="color:var(--dim);">You will be returned to the login screen.</p>
+        <div class="modal-btn-row">
+            <button class="btn btn-danger" style="flex:1;justify-content:center;padding:14px;" onclick="confirmLogout()">
+                <i data-lucide="log-out" style="width:15px;height:15px;"></i> Log Out
+            </button>
+            <button class="btn btn-edit" style="flex:1;justify-content:center;padding:14px;" onclick="hideModal('logoutModal')">Cancel</button>
         </div>
     </div>
 </div>
@@ -979,118 +1473,253 @@ async function uploadToCloudinary(file) {
     return (await r.json()).secure_url;
 }
 
-// ── Vendor State ──────────────────────────────────────────────────────────
-// CONFIGURATION: Set your vendor key here (the Firebase key of this vendor)
-// In production this would come from auth. For demo, we auto-select the first vendor
-// or you can hardcode: const VENDOR_KEY = 'your-firebase-key-here';
+// ── State ──────────────────────────────────────────────────────────────────
 let VENDOR_KEY = null;
 let vendorData  = null;
 let menuCache   = {};
 let ordersCache = {};
+let driversCache = {};
 let settingsState = {};
 
-// ── Greeting ─────────────────────────────────────────────────────────────
+// ── Greeting ──────────────────────────────────────────────────────────────
 (function setGreeting() {
     const h = new Date().getHours();
     const greet = h < 12 ? '☀️ Good Morning' : h < 17 ? '🌤️ Good Afternoon' : '🌙 Good Evening';
     document.getElementById('dashGreeting').textContent = greet;
 })();
 
-// ── Sidebar hover ─────────────────────────────────────────────────────────
-const sidebar = document.getElementById('mainSidebar');
-const mainPanel = document.getElementById('mainPanel');
-sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainPanel.classList.add('shifted'); });
-sidebar.addEventListener('mouseleave', () => { sidebar.classList.remove('expanded'); mainPanel.classList.remove('shifted'); });
-
-// ── Tab nav ───────────────────────────────────────────────────────────────
-function showTab(id, el) {
-    document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    if (el) el.classList.add('active');
-    setTimeout(() => lucide.createIcons(), 50);
-    if (id === 'analytics') renderAnalytics();
-    if (id === 'profile') populateProfileForm();
-    if (id === 'settings') loadSettings();
+// ── Auth Tab Switch ────────────────────────────────────────────────────────
+function switchAuthTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+    document.getElementById('loginPanel').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('registerPanel').style.display = tab === 'register' ? 'block' : 'none';
+    document.getElementById('loginError').style.display = 'none';
+    document.getElementById('regError').style.display = 'none';
+    document.getElementById('regSuccess').style.display = 'none';
 }
 
-// ── Modal helpers ─────────────────────────────────────────────────────────
-function showModal(id) {
-    const el = document.getElementById(id);
-    el.style.display = 'flex';
-    setTimeout(() => { el.classList.add('active'); lucide.createIcons(); }, 10);
-}
-function hideModal(id) {
-    const el = document.getElementById(id);
-    el.classList.remove('active');
-    setTimeout(() => el.style.display = 'none', 320);
-}
-window.onclick = e => {
-    if (e.target.classList.contains('modal-overlay'))
-        ['itemModal','deleteModal'].forEach(hideModal);
-};
+// ── LOGIN ─────────────────────────────────────────────────────────────────
+async function doLogin() {
+    const vendorId = document.getElementById('loginVendorId').value.trim().toUpperCase();
+    const errEl = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
 
-function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString('en-ZA') : 'N/A'; }
-function fmtTime(ts) { return ts ? new Date(ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : ''; }
-function fmtCurrency(v) { return 'R ' + Number(v||0).toFixed(2); }
+    if (!vendorId) { showAuthError(errEl, 'Please enter your Vendor ID.'); return; }
 
-// ── Load Vendor ───────────────────────────────────────────────────────────
-// Attempt to load vendor key from localStorage (so you can "log in" once)
-function initVendor() {
-    const saved = localStorage.getItem('vynix_vendor_key');
-    if (saved) {
-        VENDOR_KEY = saved;
-        startVendorSync();
-    } else {
-        // Auto-pick the first active vendor for demo
-        db.ref('vendors').orderByChild('status').equalTo('active').limitToFirst(1).once('value', snap => {
-            const data = snap.val();
-            if (data) {
-                VENDOR_KEY = Object.keys(data)[0];
-                localStorage.setItem('vynix_vendor_key', VENDOR_KEY);
-                startVendorSync();
-            } else {
-                // No active vendor, pick any first vendor
-                db.ref('vendors').limitToFirst(1).once('value', s2 => {
-                    const d2 = s2.val();
-                    if (d2) {
-                        VENDOR_KEY = Object.keys(d2)[0];
-                        localStorage.setItem('vynix_vendor_key', VENDOR_KEY);
-                        startVendorSync();
-                    } else {
-                        showToast('No vendor found in database. Please add a vendor via Admin first.', 'error');
-                    }
-                });
-            }
-        });
+    btn.disabled = true; btn.textContent = 'Signing in…';
+
+    try {
+        // Find vendor by vendorID field
+        const snap = await db.ref('vendors').orderByChild('vendorID').equalTo(vendorId).once('value');
+        const data = snap.val();
+
+        if (!data) { showAuthError(errEl, 'Vendor ID not found. Check your ID or contact admin.'); btn.disabled=false;btn.textContent='Sign In to Portal'; return; }
+
+        const key = Object.keys(data)[0];
+        const vendor = data[key];
+
+        // Check status
+        if (vendor.status === 'pending') {
+            showAuthError(errEl, 'Your application is pending admin approval. You will be notified once approved.');
+            btn.disabled=false;btn.textContent='Sign In to Portal'; return;
+        }
+        if (vendor.status === 'disabled') {
+            showAuthError(errEl, 'Your account is disabled. Please contact admin.');
+            btn.disabled=false;btn.textContent='Sign In to Portal'; return;
+        }
+
+        // Success — ID only login
+        VENDOR_KEY = key;
+        localStorage.setItem('vynix_vendor_key', key);
+        localStorage.setItem('vynix_vendor_session', JSON.stringify({ key, vendorId, loggedAt: Date.now() }));
+        enterPortal();
+    } catch(e) {
+        showAuthError(errEl, 'Connection error. Please try again.');
+        btn.disabled=false;btn.textContent='Sign In to Portal';
     }
 }
 
+function showAuthError(el, msg) {
+    el.textContent = msg;
+    el.style.display = 'block';
+}
+
+// Allow Enter key on login
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('loginVendorId')?.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+});
+
+// ── REGISTER ─────────────────────────────────────────────────────────────
+let regCurrentStep = 0;
+
+function updateStepDots(step) {
+    for (let i = 0; i < 3; i++) {
+        const dot = document.getElementById('dot-'+i);
+        dot.className = 'step-dot' + (i < step ? ' done' : i === step ? ' active' : '');
+    }
+}
+
+function regNext(step) {
+    const errEl = document.getElementById('regError');
+    errEl.style.display = 'none';
+
+    if (step === 0) {
+        if (!document.getElementById('reg-name').value.trim()) { showAuthError(errEl, 'Restaurant name is required.'); return; }
+        if (!document.getElementById('reg-cuisine-cat').value) { showAuthError(errEl, 'Please select a cuisine category.'); return; }
+        if (!document.getElementById('reg-city').value.trim()) { showAuthError(errEl, 'City is required.'); return; }
+        if (!document.getElementById('reg-province').value) { showAuthError(errEl, 'Please select your province.'); return; }
+    } else if (step === 1) {
+        if (!document.getElementById('reg-owner').value.trim()) { showAuthError(errEl, 'Contact person name is required.'); return; }
+        if (!document.getElementById('reg-phone').value.trim()) { showAuthError(errEl, 'Phone number is required.'); return; }
+        if (!document.getElementById('reg-email').value.trim()) { showAuthError(errEl, 'Email address is required.'); return; }
+    }
+
+    document.getElementById('regStep'+step).classList.remove('active');
+    document.getElementById('regStep'+(step+1)).classList.add('active');
+    regCurrentStep = step + 1;
+    updateStepDots(regCurrentStep);
+}
+
+function regBack(step) {
+    document.getElementById('regStep'+step).classList.remove('active');
+    document.getElementById('regStep'+(step-1)).classList.add('active');
+    regCurrentStep = step - 1;
+    updateStepDots(regCurrentStep);
+    document.getElementById('regError').style.display = 'none';
+}
+
+async function submitRegistration() {
+    const errEl = document.getElementById('regError');
+    const sucEl = document.getElementById('regSuccess');
+    const btn = document.getElementById('regSubmitBtn');
+    errEl.style.display = 'none';
+
+    btn.disabled = true; btn.textContent = 'Submitting…';
+
+    const application = {
+        name: document.getElementById('reg-name').value.trim(),
+        cuisineCategory: document.getElementById('reg-cuisine-cat').value,
+        cuisine: document.getElementById('reg-cuisine-cat').value,
+        address: {
+            city: document.getElementById('reg-city').value.trim(),
+            province: document.getElementById('reg-province').value,
+        },
+        ownerName: document.getElementById('reg-owner').value.trim(),
+        phone: document.getElementById('reg-phone').value.trim(),
+        whatsapp: document.getElementById('reg-whatsapp').value.trim(),
+        email: document.getElementById('reg-email').value.trim(),
+        businessRegNo: document.getElementById('reg-regno').value.trim(),
+        status: 'pending',
+        vendorID: null, // Admin will assign this
+        appliedAt: Date.now(),
+        updatedAt: Date.now(),
+    };
+
+    try {
+        await db.ref('vendors').push(application);
+        sucEl.innerHTML = '✅ Application submitted! Admin will review and assign your Vendor ID. You will be able to sign in once approved.';
+        sucEl.style.display = 'block';
+        btn.textContent = 'Application Sent';
+        // Reset form
+        setTimeout(() => {
+            switchAuthTab('login');
+            ['reg-name','reg-city','reg-owner','reg-phone','reg-whatsapp','reg-email','reg-regno'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+            ['reg-cuisine-cat','reg-province'].forEach(id => { const el=document.getElementById(id); if(el) el.selectedIndex=0; });
+            document.getElementById('regStep'+regCurrentStep).classList.remove('active');
+            document.getElementById('regStep0').classList.add('active');
+            regCurrentStep = 0;
+            updateStepDots(0);
+            btn.disabled = false; btn.textContent = 'Submit Application';
+        }, 3500);
+    } catch(e) {
+        showAuthError(errEl, 'Submission failed. Please check your connection and try again.');
+        btn.disabled = false; btn.textContent = 'Submit Application';
+    }
+}
+
+// ── PORTAL ENTRY ──────────────────────────────────────────────────────────
+function enterPortal() {
+    document.getElementById('authScreen').classList.add('hidden');
+    const shimmer = document.getElementById('shimmerOverlay');
+    shimmer.style.display = 'flex';
+    startVendorSync();
+    setTimeout(() => {
+        shimmer.style.transition = 'opacity .55s ease';
+        shimmer.classList.add('fade-out');
+        document.getElementById('mainSidebar').style.display = 'flex';
+        document.getElementById('mainPanel').style.display = 'block';
+        setTimeout(() => { shimmer.style.display = 'none'; lucide.createIcons(); }, 600);
+    }, 2200);
+}
+
+// ── CHECK EXISTING SESSION ─────────────────────────────────────────────────
+(function checkSession() {
+    const session = JSON.parse(localStorage.getItem('vynix_vendor_session') || 'null');
+    if (session && session.key && (Date.now() - session.loggedAt) < 24 * 60 * 60 * 1000) {
+        VENDOR_KEY = session.key;
+        enterPortal();
+    }
+    // else auth screen remains visible
+})();
+
+// ── LOGOUT ────────────────────────────────────────────────────────────────
+function doLogout() {
+    showModal('logoutModal');
+}
+function confirmLogout() {
+    hideModal('logoutModal');
+    // Clear session
+    localStorage.removeItem('vynix_vendor_key');
+    localStorage.removeItem('vynix_vendor_session');
+    VENDOR_KEY = null; vendorData = null;
+    menuCache = {}; ordersCache = {}; driversCache = {};
+    // Stop firebase listeners
+    db.ref('vendors').off();
+    db.ref('orders').off();
+    // Hide portal
+    document.getElementById('mainSidebar').style.display = 'none';
+    document.getElementById('mainPanel').style.display = 'none';
+    document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('loginVendorId').value = '';
+    document.getElementById('loginError').style.display = 'none';
+    // Reset nav
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.nav-item')[0]?.classList.add('active');
+    document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+    document.getElementById('dashboard').classList.add('active');
+    lucide.createIcons();
+}
+
+// ── VENDOR SYNC ───────────────────────────────────────────────────────────
 function startVendorSync() {
     if (!VENDOR_KEY) return;
 
-    // Sync vendor profile
     db.ref('vendors/' + VENDOR_KEY).on('value', snap => {
         vendorData = snap.val();
         if (!vendorData) { showToast('Vendor not found', 'error'); return; }
         applyVendorUI();
     });
 
-    // Sync menu items (stored under vendors/VENDOR_KEY/menu)
     db.ref('vendors/' + VENDOR_KEY + '/menu').on('value', snap => {
         menuCache = snap.val() || {};
         renderMenuGrid();
+        renderFeaturedItems();
         updateDashboardStats();
         updateAnalyticsStats();
     });
 
-    // Sync orders (filter by vendorKey)
     db.ref('orders').orderByChild('vendorKey').equalTo(VENDOR_KEY).on('value', snap => {
         ordersCache = snap.val() || {};
         renderOrders();
         renderRecentOrders();
         updateDashboardStats();
         updateAnalyticsStats();
+    });
+
+    db.ref('vendors/' + VENDOR_KEY + '/drivers').on('value', snap => {
+        driversCache = snap.val() || {};
+        renderDrivers();
+        updateDriverStats();
     });
 }
 
@@ -1101,14 +1730,13 @@ function applyVendorUI() {
     const status = vendorData.status || 'pending';
     const initial = name.charAt(0).toUpperCase();
 
-    // Sidebar
     document.getElementById('chipName').textContent = name;
     document.getElementById('sidebarName').textContent = name;
     document.getElementById('sidebarStatus').textContent = status === 'active' ? 'Active Store' : status === 'pending' ? 'Pending Approval' : 'Store Disabled';
     document.getElementById('sidebarAvatar').textContent = initial;
     document.getElementById('dashSubtitle').textContent = `Welcome back to ${name}`;
+    document.getElementById('settingsSignedInAs').textContent = `${name} (${vendorData.vendorID || 'ID Pending'})`;
 
-    // Status banner
     const banner = document.getElementById('statusBanner');
     const bannerText = document.getElementById('bannerText');
     const bannerSub = document.getElementById('bannerSub');
@@ -1130,14 +1758,12 @@ function applyVendorUI() {
         bannerBadge.innerHTML = '<span class="badge badge-disabled">DISABLED</span>';
     }
 
-    // Profile header
-    document.getElementById('profileAvatar').querySelector('span') && (document.getElementById('profileAvatarInitials').textContent = initial);
+    document.getElementById('profileAvatarInitials').textContent = initial;
     document.getElementById('profileHeaderName').textContent = name;
     document.getElementById('profileHeaderCuisine').textContent = cuisine;
     document.getElementById('profileHeaderBadge').innerHTML = statusBadge(status);
     document.getElementById('profileVendorID').textContent = vendorData.vendorID || 'PENDING';
 
-    // Store info snippet
     const addr = vendorData.address || {};
     document.getElementById('storeInfoSnippet').innerHTML = `
         <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
@@ -1160,26 +1786,67 @@ function applyVendorUI() {
     setTimeout(() => lucide.createIcons(), 50);
 }
 
-// ── Dashboard Stats ───────────────────────────────────────────────────────
+// ── Dashboard Stats ────────────────────────────────────────────────────────
 function updateDashboardStats() {
     const items = Object.values(menuCache);
     const orders = Object.values(ordersCache);
     const pending = orders.filter(o => o.status === 'pending').length;
     const revenue = orders.filter(o => o.status === 'delivered').reduce((s, o) => s + Number(o.total || 0), 0);
+    const featuredCount = items.filter(v => v.featured === 'true' || v.featured === true).length;
 
     document.getElementById('stat-menu').textContent = items.length;
+    document.getElementById('stat-featured').textContent = featuredCount;
     document.getElementById('stat-orders').textContent = orders.length;
     document.getElementById('stat-pending').textContent = pending;
     document.getElementById('stat-revenue').textContent = 'R ' + revenue.toFixed(0);
 }
 
-// ── Menu Items ────────────────────────────────────────────────────────────
+// ── Sidebar hover ──────────────────────────────────────────────────────────
+const sidebar = document.getElementById('mainSidebar');
+const mainPanel = document.getElementById('mainPanel');
+sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainPanel.classList.add('shifted'); });
+sidebar.addEventListener('mouseleave', () => { sidebar.classList.remove('expanded'); mainPanel.classList.remove('shifted'); });
+
+// ── Tab nav ────────────────────────────────────────────────────────────────
+function showTab(id, el) {
+    document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (el) el.classList.add('active');
+    setTimeout(() => lucide.createIcons(), 50);
+    if (id === 'analytics') renderAnalytics();
+    if (id === 'profile') populateProfileForm();
+    if (id === 'settings') loadSettings();
+    if (id === 'featured') renderFeaturedItems();
+    if (id === 'drivers') { renderDrivers(); updateDriverStats(); }
+}
+
+// ── Modal helpers ──────────────────────────────────────────────────────────
+function showModal(id) {
+    const el = document.getElementById(id);
+    el.style.display = 'flex';
+    setTimeout(() => { el.classList.add('active'); lucide.createIcons(); }, 10);
+}
+function hideModal(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('active');
+    setTimeout(() => el.style.display = 'none', 320);
+}
+window.onclick = e => {
+    if (e.target.classList.contains('modal-overlay'))
+        ['itemModal','deleteModal','addDriverModal','logoutModal'].forEach(hideModal);
+};
+
+function fmtDate(ts) { return ts ? new Date(ts).toLocaleDateString('en-ZA') : 'N/A'; }
+function fmtTime(ts) { return ts ? new Date(ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}) : ''; }
+function fmtCurrency(v) { return 'R ' + Number(v||0).toFixed(2); }
+
+// ── Menu Items ─────────────────────────────────────────────────────────────
 let menuFilter = { search: '', category: '' };
 
 function renderMenuGrid() {
     const grid = document.getElementById('menuGrid');
     let items = Object.entries(menuCache).reverse();
-
     if (menuFilter.search) {
         const s = menuFilter.search.toLowerCase();
         items = items.filter(([,v]) => (v.name||'').toLowerCase().includes(s) || (v.description||'').toLowerCase().includes(s));
@@ -1187,7 +1854,6 @@ function renderMenuGrid() {
     if (menuFilter.category) {
         items = items.filter(([,v]) => v.category === menuFilter.category);
     }
-
     if (!items.length) {
         grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
             <i data-lucide="package" style="width:44px;height:44px;display:block;margin:0 auto 12px;opacity:.4;"></i>
@@ -1200,7 +1866,6 @@ function renderMenuGrid() {
         lucide.createIcons();
         return;
     }
-
     grid.innerHTML = items.map(([key, v]) => {
         const statusColors = {
             available:   { bg: 'var(--accent-light)', color: 'var(--accent-dark)', text: 'Available' },
@@ -1211,6 +1876,7 @@ function renderMenuGrid() {
         const imgEl = v.imageURL
             ? `<img src="${v.imageURL}" class="menu-item-img" alt="${v.name}" loading="lazy">`
             : `<div class="menu-item-img-placeholder"><i data-lucide="image" style="width:36px;height:36px;"></i></div>`;
+        const isFeatured = v.featured === 'true' || v.featured === true;
         return `
         <div class="menu-item-card">
             <div style="position:relative;">
@@ -1221,7 +1887,7 @@ function renderMenuGrid() {
                 </div>
                 <div class="menu-item-badge">
                     <span style="background:${sc.bg};color:${sc.color};border:1px solid ${sc.color};border-radius:10px;font-size:0.68rem;font-weight:700;padding:3px 8px;">${sc.text}</span>
-                    ${v.featured === 'true' || v.featured === true ? '<span style="background:var(--yellow);color:#5a3e00;border-radius:10px;font-size:0.68rem;font-weight:700;padding:3px 8px;margin-left:4px;">⭐ Featured</span>' : ''}
+                    ${isFeatured ? '<span style="background:var(--yellow);color:#5a3e00;border-radius:10px;font-size:0.68rem;font-weight:700;padding:3px 8px;margin-left:4px;">⭐ Featured</span>' : ''}
                 </div>
             </div>
             <div class="menu-item-body">
@@ -1295,7 +1961,6 @@ async function saveMenuItem() {
     const name = document.getElementById('item-name').value.trim();
     const category = document.getElementById('item-category').value;
     const price = parseFloat(document.getElementById('item-price').value);
-
     if (!name) { showToast('Item name is required', 'error'); return; }
     if (!category) { showToast('Please select a category', 'error'); return; }
     if (!price || price <= 0) { showToast('Please enter a valid price', 'error'); return; }
@@ -1308,18 +1973,18 @@ async function saveMenuItem() {
         catch { showToast('Image upload failed', 'error'); return; }
     }
 
+    const featuredVal = document.getElementById('item-featured').value;
     const data = {
-        name,
-        category,
+        name, category,
         description: document.getElementById('item-desc').value.trim(),
-        price,
-        prepTime: document.getElementById('item-preptime').value || '',
+        price, prepTime: document.getElementById('item-preptime').value || '',
         calories: document.getElementById('item-calories').value || '',
         allergens: document.getElementById('item-allergens').value.trim(),
         status: document.getElementById('item-status').value,
-        featured: document.getElementById('item-featured').value,
-        imageURL,
-        updatedAt: Date.now(),
+        featured: featuredVal === 'true' ? true : false,
+        imageURL, updatedAt: Date.now(),
+        vendorKey: VENDOR_KEY,
+        vendorName: vendorData?.name || '',
     };
 
     const ref = key
@@ -1329,10 +1994,102 @@ async function saveMenuItem() {
     ref.then(() => {
         showToast(key ? `"${name}" updated!` : `"${name}" added to menu!`, 'success');
         hideModal('itemModal');
+        // Also update global featured_items node for customer app visibility
+        syncFeaturedToGlobal();
     }).catch(() => showToast('Error saving item', 'error'));
 }
 
-// ── Delete Item ───────────────────────────────────────────────────────────
+// Sync featured items to a global node so customer app can read them
+function syncFeaturedToGlobal() {
+    if (!VENDOR_KEY || !vendorData) return;
+    const featured = Object.entries(menuCache)
+        .filter(([,v]) => v.featured === true || v.featured === 'true')
+        .reduce((obj, [k, v]) => {
+            obj[k] = {
+                name: v.name, category: v.category, price: v.price,
+                description: v.description, imageURL: v.imageURL || '',
+                vendorKey: VENDOR_KEY, vendorName: vendorData.name || '',
+                status: v.status, updatedAt: Date.now(),
+            };
+            return obj;
+        }, {});
+    // Remove old entries for this vendor and write fresh
+    db.ref(`featured_items/${VENDOR_KEY}`).set(Object.keys(featured).length ? featured : null);
+}
+
+// ── Featured Items Page ────────────────────────────────────────────────────
+function renderFeaturedItems() {
+    const items = Object.entries(menuCache);
+    const featuredItems = items.filter(([,v]) => v.featured === true || v.featured === 'true');
+    const count = featuredItems.length;
+
+    document.getElementById('featuredCount').textContent = count;
+
+    // Featured list
+    const listEl = document.getElementById('featuredItemsList');
+    if (!count) {
+        listEl.innerHTML = '<div style="color:var(--dim);text-align:center;padding:20px;font-size:0.88rem;">No featured items yet. Toggle items from the panel on the right.</div>';
+    } else {
+        listEl.innerHTML = featuredItems.map(([key, v]) => `
+            <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg);border-radius:12px;margin-bottom:8px;">
+                ${v.imageURL ? `<img src="${v.imageURL}" style="width:44px;height:44px;object-fit:cover;border-radius:10px;flex-shrink:0;">` : `<div style="width:44px;height:44px;background:var(--accent-light);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i data-lucide="image" style="width:18px;height:18px;color:var(--accent);"></i></div>`}
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;font-size:0.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.name}</div>
+                    <div style="font-size:0.76rem;color:var(--accent-dark);font-weight:600;">${fmtCurrency(v.price)}</div>
+                </div>
+                <button class="btn btn-danger" style="padding:5px 12px;font-size:0.76rem;" onclick="toggleFeatured('${key}',false)">
+                    <i data-lucide="x" style="width:12px;height:12px;"></i> Remove
+                </button>
+            </div>
+        `).join('');
+    }
+
+    // Toggle list (all items)
+    const toggleEl = document.getElementById('featuredToggleList');
+    if (!items.length) {
+        toggleEl.innerHTML = '<div style="color:var(--dim);text-align:center;padding:20px;font-size:0.88rem;">No items in menu yet.</div>';
+    } else {
+        toggleEl.innerHTML = items.map(([key, v]) => {
+            const isFeat = v.featured === true || v.featured === 'true';
+            return `
+            <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:6px;background:${isFeat?'var(--accent-light)':''};border:1px solid ${isFeat?'var(--accent)':'var(--border)'};">
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;font-size:0.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.name || 'Unnamed'}</div>
+                    <div style="font-size:0.74rem;color:var(--dim);">${v.category || ''} · ${fmtCurrency(v.price)}</div>
+                </div>
+                <div class="toggle ${isFeat?'on':''}" onclick="toggleFeatured('${key}',${!isFeat})" style="flex-shrink:0;"></div>
+            </div>`;
+        }).join('');
+    }
+
+    // Preview cards
+    const previewEl = document.getElementById('featuredPreviewCards');
+    if (!count) {
+        previewEl.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:0.88rem;padding:20px;">No featured items to preview</div>';
+    } else {
+        previewEl.innerHTML = featuredItems.map(([key, v]) => `
+            <div style="flex-shrink:0;width:140px;background:rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);">
+                ${v.imageURL ? `<img src="${v.imageURL}" style="width:100%;height:90px;object-fit:cover;">` : `<div style="width:100%;height:90px;background:rgba(6,193,103,0.2);display:flex;align-items:center;justify-content:center;"><i data-lucide="star" style="width:28px;height:28px;color:var(--accent);"></i></div>`}
+                <div style="padding:10px;">
+                    <div style="font-size:0.8rem;font-weight:700;color:white;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.name}</div>
+                    <div style="font-size:0.78rem;color:var(--accent);font-weight:700;margin-top:2px;">${fmtCurrency(v.price)}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    setTimeout(() => lucide.createIcons(), 50);
+    syncFeaturedToGlobal();
+}
+
+function toggleFeatured(key, featVal) {
+    if (!VENDOR_KEY) return;
+    db.ref(`vendors/${VENDOR_KEY}/menu/${key}`).update({ featured: featVal, updatedAt: Date.now() }).then(() => {
+        showToast(featVal ? 'Item added to featured!' : 'Item removed from featured', 'success');
+    }).catch(() => showToast('Error updating featured', 'error'));
+}
+
+// ── Delete Item ────────────────────────────────────────────────────────────
 function openDeleteModal(key, name) {
     document.getElementById('del-key').value = key;
     document.getElementById('del-name').textContent = `"${name}"`;
@@ -1344,16 +2101,16 @@ function confirmDelete() {
     db.ref(`vendors/${VENDOR_KEY}/menu/${key}`).remove().then(() => {
         showToast('Item deleted', 'success');
         hideModal('deleteModal');
+        syncFeaturedToGlobal();
     }).catch(() => showToast('Error deleting item', 'error'));
 }
 
-// ── Orders ────────────────────────────────────────────────────────────────
+// ── Orders ─────────────────────────────────────────────────────────────────
 function renderOrders() {
     const container = document.getElementById('ordersContainer');
     const filter = document.getElementById('orderFilter')?.value || 'all';
     let orders = Object.entries(ordersCache).sort((a,b) => (b[1].createdAt||0) - (a[1].createdAt||0));
     if (filter !== 'all') orders = orders.filter(([,o]) => o.status === filter);
-
     if (!orders.length) {
         container.innerHTML = `<div class="empty-state">
             <i data-lucide="shopping-bag" style="width:48px;height:48px;display:block;margin:0 auto 12px;opacity:.4;"></i>
@@ -1362,7 +2119,6 @@ function renderOrders() {
         lucide.createIcons();
         return;
     }
-
     container.innerHTML = orders.map(([key, o]) => {
         const statusColors = {
             pending:   { bg:'#fff5cc', color:'#997300', text:'Pending' },
@@ -1377,7 +2133,6 @@ function renderOrders() {
         const customerName = customer.name || customer.displayName || 'Customer';
         const items = o.items ? Object.values(o.items) : [];
         const itemsSummary = items.slice(0,3).map(i => `${i.quantity||1}× ${i.name}`).join(', ') + (items.length > 3 ? ` +${items.length-3} more` : '');
-
         return `
         <div class="order-card">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
@@ -1408,9 +2163,7 @@ function renderOrders() {
 function renderRecentOrders() {
     const container = document.getElementById('recentOrdersList');
     const recent = Object.entries(ordersCache)
-        .sort((a,b) => (b[1].createdAt||0) - (a[1].createdAt||0))
-        .slice(0, 5);
-
+        .sort((a,b) => (b[1].createdAt||0) - (a[1].createdAt||0)).slice(0, 5);
     if (!recent.length) {
         container.innerHTML = `<div class="empty-state">
             <i data-lucide="shopping-bag" style="width:40px;height:40px;display:block;margin:0 auto 12px;opacity:.4;"></i>
@@ -1419,12 +2172,7 @@ function renderRecentOrders() {
         lucide.createIcons();
         return;
     }
-
-    const statusColors = {
-        pending:'#f5a623', accepted:'var(--purple)', preparing:'var(--warning)',
-        ready:'var(--accent)', delivered:'var(--accent)', cancelled:'var(--danger)'
-    };
-
+    const statusColors = { pending:'#f5a623', accepted:'var(--purple)', preparing:'var(--warning)', ready:'var(--accent)', delivered:'var(--accent)', cancelled:'var(--danger)' };
     container.innerHTML = recent.map(([key, o]) => {
         const customer = o.customer || o.user || {};
         return `
@@ -1447,7 +2195,120 @@ function updateOrderStatus(key, newStatus) {
     }).catch(() => showToast('Error updating order', 'error'));
 }
 
-// ── Analytics ─────────────────────────────────────────────────────────────
+// ── Drivers ────────────────────────────────────────────────────────────────
+let allDrivers = {};
+
+function renderDrivers(searchTerm = '') {
+    const grid = document.getElementById('driversGrid');
+    let entries = Object.entries(driversCache);
+    if (searchTerm) {
+        const s = searchTerm.toLowerCase();
+        entries = entries.filter(([,d]) => (d.name||'').toLowerCase().includes(s) || (d.phone||'').includes(s));
+    }
+    if (!entries.length) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+            <i data-lucide="bike" style="width:48px;height:48px;display:block;margin:0 auto 12px;opacity:.4;"></i>
+            <p style="font-weight:600;margin-bottom:4px;">${searchTerm ? 'No drivers match your search' : 'No drivers yet'}</p>
+            <p style="font-size:0.85rem;">Add drivers to manage your delivery fleet</p>
+        </div>`;
+        lucide.createIcons();
+        return;
+    }
+    const statusInfo = {
+        online: { label:'Online', class:'online', bg:'var(--accent-light)', color:'var(--accent-dark)' },
+        offline: { label:'Offline', class:'offline', bg:'var(--surface2)', color:'var(--dim)' },
+        busy: { label:'On Delivery', class:'busy', bg:'#fff0d4', color:'#c46b00' },
+    };
+    const vehicleIcons = { motorcycle:'🏍️', bicycle:'🚲', car:'🚗', scooter:'🛵' };
+    grid.innerHTML = entries.map(([key, d]) => {
+        const si = statusInfo[d.status || 'offline'] || statusInfo.offline;
+        const initial = (d.name||'D').charAt(0).toUpperCase();
+        return `
+        <div class="driver-card">
+            <div class="driver-avatar">${initial}</div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:700;font-size:0.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.name || 'Driver'}</div>
+                <div style="font-size:0.8rem;color:var(--dim);margin-top:2px;">${d.phone || '—'} · ${vehicleIcons[d.vehicle]||'🚗'} ${d.vehicle||''}</div>
+                ${d.plate ? `<div style="font-size:0.76rem;color:var(--dim);">${d.plate}</div>` : ''}
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+                <span style="background:${si.bg};color:${si.color};border-radius:999px;font-size:0.7rem;font-weight:700;padding:3px 10px;display:flex;align-items:center;gap:4px;">
+                    <span class="driver-status-dot ${si.class}"></span>${si.label}
+                </span>
+                <div style="display:flex;gap:4px;">
+                    <button class="btn btn-edit" style="padding:5px 10px;" onclick="editDriver('${key}')"><i data-lucide="edit-2" style="width:12px;height:12px;"></i></button>
+                    <button class="btn btn-danger" style="padding:5px 10px;" onclick="deleteDriver('${key}','${(d.name||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:12px;height:12px;"></i></button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+}
+
+function updateDriverStats() {
+    const drivers = Object.values(driversCache);
+    document.getElementById('dstat-total').textContent = drivers.length;
+    document.getElementById('dstat-online').textContent = drivers.filter(d => d.status === 'online').length;
+    document.getElementById('dstat-busy').textContent = drivers.filter(d => d.status === 'busy').length;
+}
+
+function filterDrivers(term) {
+    renderDrivers(term);
+}
+
+function saveDriver() {
+    if (!VENDOR_KEY) { showToast('No vendor loaded', 'error'); return; }
+    const key = document.getElementById('driver-key').value;
+    const name = document.getElementById('drv-name').value.trim();
+    const phone = document.getElementById('drv-phone').value.trim();
+    if (!name) { showToast('Driver name is required', 'error'); return; }
+    if (!phone) { showToast('Phone number is required', 'error'); return; }
+    const data = {
+        name, phone,
+        idNumber: document.getElementById('drv-idno').value.trim(),
+        vehicle: document.getElementById('drv-vehicle').value,
+        plate: document.getElementById('drv-plate').value.trim(),
+        status: document.getElementById('drv-status').value,
+        vendorKey: VENDOR_KEY,
+        updatedAt: Date.now(),
+    };
+    const ref = key
+        ? db.ref(`vendors/${VENDOR_KEY}/drivers/${key}`).update(data)
+        : db.ref(`vendors/${VENDOR_KEY}/drivers`).push({ ...data, createdAt: Date.now() });
+    ref.then(() => {
+        showToast(key ? `${name} updated!` : `${name} added to fleet!`, 'success');
+        hideModal('addDriverModal');
+        clearDriverForm();
+    }).catch(() => showToast('Error saving driver', 'error'));
+}
+
+function editDriver(key) {
+    const d = driversCache[key];
+    if (!d) return;
+    document.getElementById('driver-key').value = key;
+    document.getElementById('drv-name').value = d.name || '';
+    document.getElementById('drv-phone').value = d.phone || '';
+    document.getElementById('drv-idno').value = d.idNumber || '';
+    document.getElementById('drv-vehicle').value = d.vehicle || 'motorcycle';
+    document.getElementById('drv-plate').value = d.plate || '';
+    document.getElementById('drv-status').value = d.status || 'offline';
+    showModal('addDriverModal');
+}
+
+function deleteDriver(key, name) {
+    if (!confirm(`Remove driver "${name}"?`)) return;
+    db.ref(`vendors/${VENDOR_KEY}/drivers/${key}`).remove().then(() => {
+        showToast(`${name} removed from fleet`, 'success');
+    }).catch(() => showToast('Error removing driver', 'error'));
+}
+
+function clearDriverForm() {
+    ['driver-key','drv-name','drv-phone','drv-idno','drv-plate'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('drv-vehicle').selectedIndex = 0;
+    document.getElementById('drv-status').selectedIndex = 0;
+}
+
+// ── Analytics ──────────────────────────────────────────────────────────────
 function updateAnalyticsStats() {
     const items = Object.values(menuCache);
     const orders = Object.values(ordersCache);
@@ -1556,7 +2417,7 @@ function getLast6Months() {
     return months;
 }
 
-// ── Store Profile ─────────────────────────────────────────────────────────
+// ── Store Profile ──────────────────────────────────────────────────────────
 function populateProfileForm() {
     if (!vendorData) return;
     const addr = vendorData.address || {};
@@ -1579,13 +2440,10 @@ function populateProfileForm() {
         const el = document.getElementById(id);
         if (el && val !== undefined && val !== null) el.value = val;
     });
-
-    // Operating days
     const savedDays = Array.isArray(vendorData.operatingDays) ? vendorData.operatingDays : [];
     document.querySelectorAll('#p-days input[type=checkbox]').forEach(cb => {
         cb.checked = savedDays.includes(cb.value);
-        const lbl = cb.closest('label');
-        lbl.classList.toggle('checked', cb.checked);
+        cb.closest('label').classList.toggle('checked', cb.checked);
     });
 }
 
@@ -1597,9 +2455,7 @@ function saveStoreProfile() {
     if (!VENDOR_KEY) { showToast('No vendor loaded', 'error'); return; }
     const name = document.getElementById('p-name').value.trim();
     if (!name) { showToast('Business name is required', 'error'); return; }
-
     const days = Array.from(document.querySelectorAll('#p-days input[type=checkbox]:checked')).map(c => c.value);
-
     const upd = {
         name,
         tradingName:     document.getElementById('p-tradename').value.trim(),
@@ -1627,13 +2483,12 @@ function saveStoreProfile() {
         operatingDays:  days,
         updatedAt:      Date.now(),
     };
-
     db.ref('vendors/' + VENDOR_KEY).update(upd).then(() => {
         showToast(`Profile updated for "${name}"`, 'success');
     }).catch(() => showToast('Error saving profile', 'error'));
 }
 
-// ── Settings ──────────────────────────────────────────────────────────────
+// ── Settings ───────────────────────────────────────────────────────────────
 const defaultSettings = { storeOpen:true, onlineOrders:true, deliveryAvailable:true, takeawayAvailable:true, orderAlerts:true, smsNotifs:false };
 const toggleMap = { storeOpen:'tog-open', onlineOrders:'tog-online', deliveryAvailable:'tog-delivery', takeawayAvailable:'tog-takeaway', orderAlerts:'tog-alerts', smsNotifs:'tog-sms' };
 
@@ -1644,7 +2499,6 @@ function loadSettings() {
         const el = document.getElementById(id);
         if (el) el.classList.toggle('on', !!settingsState[k]);
     });
-    // Also load from firebase if vendor has settings
     if (VENDOR_KEY && vendorData) {
         const vs = vendorData.settings || {};
         if (vs.deliveryFee !== undefined) document.getElementById('s-deliveryfee').value = vs.deliveryFee;
@@ -1660,7 +2514,6 @@ function toggleSetting(el, key) {
 
 function saveSettings() {
     localStorage.setItem('vynix_vendor_settings', JSON.stringify(settingsState));
-    // Also save fee settings to Firebase
     if (VENDOR_KEY) {
         db.ref('vendors/' + VENDOR_KEY + '/settings').update({
             deliveryFee:     document.getElementById('s-deliveryfee').value,
@@ -1678,7 +2531,7 @@ function saveSettings() {
     }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
 function statusBadge(status) {
     if (status === 'active')   return '<span class="badge badge-active"><i data-lucide="check-circle" style="width:11px;height:11px;"></i> ACTIVE</span>';
     if (status === 'pending')  return '<span class="badge badge-pending"><i data-lucide="clock" style="width:11px;height:11px;"></i> PENDING</span>';
@@ -1693,18 +2546,8 @@ function showToast(msg, type='success') {
     t._timer = setTimeout(() => t.classList.remove('show'), 3400);
 }
 
-// ── Shimmer Dismiss ───────────────────────────────────────────────────────
-(function() {
-    const delay = 4000 + Math.random() * 1000;
-    const overlay = document.getElementById('shimmerOverlay');
-    setTimeout(() => {
-        overlay.classList.add('fade-out');
-        setTimeout(() => overlay.remove(), 600);
-    }, delay);
-})();
-
-// ── Boot ──────────────────────────────────────────────────────────────────
-initVendor();
+// Boot lucide
+lucide.createIcons();
 </script>
 </body>
 </html>
