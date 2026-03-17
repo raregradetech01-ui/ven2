@@ -1638,7 +1638,7 @@ async function uploadToFirebaseStorage(file, path) {
         const storageRef = storage.ref();
         const fileRef = storageRef.child(path);
         const uploadTask = fileRef.put(file);
-      
+     
         uploadTask.on('state_changed',
             (snapshot) => {
                 // Progress tracking if needed
@@ -1924,7 +1924,7 @@ function getUserRole() {
 // Manual store status toggle
 function setManualStoreStatus(status) {
     manualStoreStatus = status;
-  
+ 
     // Update button styles
     document.querySelectorAll('.status-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -1934,7 +1934,7 @@ function setManualStoreStatus(status) {
     } else {
         document.querySelector('.status-btn.closed').classList.add('active');
     }
-  
+ 
     // Save to Firebase
     if (VENDOR_KEY) {
         db.ref('vendors/' + VENDOR_KEY).update({
@@ -1942,7 +1942,7 @@ function setManualStoreStatus(status) {
             updatedAt: Date.now()
         });
     }
-  
+ 
     // Update UI
     updateStoreStatusDisplay();
     showToast(`Store manually set to ${status}`);
@@ -1952,49 +1952,49 @@ function getStoreOpenStatus() {
     if (manualStoreStatus) {
         return manualStoreStatus === 'open';
     }
-  
+ 
     // Otherwise check hours
     return checkStoreHours().isOpen;
 }
 function checkStoreHours() {
     if (!vendorData) return { isOpen: false, message: 'Hours not set' };
-  
+ 
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     const currentTime = currentHour * 60 + currentMinute;
-  
+ 
     // Get operating days
     const operatingDays = vendorData.operatingDays || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const daysMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const today = daysMap[now.getDay()];
-  
+ 
     if (!operatingDays.includes(today)) {
         return { isOpen: false, message: 'Closed today' };
     }
-  
+ 
     // Get opening and closing times
     const openTimeStr = vendorData.openingTime || '08:00';
     const closeTimeStr = vendorData.closingTime || '22:00';
-  
+ 
     const [openHour, openMin] = openTimeStr.split(':').map(Number);
     const [closeHour, closeMin] = closeTimeStr.split(':').map(Number);
-  
+ 
     const openTime = openHour * 60 + openMin;
     let closeTime = closeHour * 60 + closeMin;
-  
+ 
     // Handle overnight hours (if closing time is less than opening time, it means next day)
     if (closeTime < openTime) {
         closeTime += 24 * 60; // Add 24 hours
     }
-  
+ 
     let adjustedCurrentTime = currentTime;
     if (closeTime > 24 * 60 && currentTime < closeTime - 24 * 60) {
         adjustedCurrentTime += 24 * 60;
     }
-  
+ 
     const isOpen = adjustedCurrentTime >= openTime && adjustedCurrentTime < closeTime;
-  
+ 
     return {
         isOpen,
         message: isOpen ? `Open until ${closeTimeStr}` : `Opens at ${openTimeStr}`
@@ -2004,7 +2004,7 @@ function checkStoreHours() {
 function isWithinDeliveryRadius(customerLat, customerLng) {
     if (!vendorData || !vendorData.lat || !vendorData.lng) return true; // If no location set, always show
     if (!customerLat || !customerLng) return true; // If no customer location, show anyway
-  
+ 
     const R = 6371; // Earth's radius in km
     const dLat = (customerLat - vendorData.lat) * Math.PI / 180;
     const dLon = (customerLng - vendorData.lng) * Math.PI / 180;
@@ -2014,7 +2014,7 @@ function isWithinDeliveryRadius(customerLat, customerLng) {
         Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c;
-  
+ 
     const maxRadius = vendorData.deliveryRadius ? parseInt(vendorData.deliveryRadius) : 30;
     return distance <= maxRadius;
 }
@@ -2025,7 +2025,7 @@ function updateUserDisplay() {
         document.getElementById('vendorSidebarName').textContent = userName;
         document.getElementById('vendorAvatar').textContent = userName.charAt(0).toUpperCase();
         document.getElementById('settingsSignedInAs').innerHTML = `${userName} <span style="color:var(--accent); font-size:0.7rem;">(${getUserRole()})</span>`;
-      
+     
         // Update store hours status
         const hoursStatus = checkStoreHours();
         const hoursBadge = document.getElementById('storeHoursBadge') || createHoursBadge();
@@ -2054,7 +2054,7 @@ function updateStoreStatusDisplay() {
     const bannerSub = document.getElementById('bannerSub');
     const bannerBadge = document.getElementById('bannerBadge');
     const hoursStatus = checkStoreHours();
-  
+ 
     if (isOpen) {
         banner.style.background = 'var(--accent-light)';
         banner.style.borderColor = 'var(--accent)';
@@ -2078,31 +2078,31 @@ function applyVendorUI() {
     const name = vendorData.name || 'My Restaurant';
     const status = vendorData.status || 'pending';
     const initial = name.charAt(0).toUpperCase();
-  
+ 
     // Load manual store status from Firebase if exists
     if (vendorData.manualStoreStatus) {
         manualStoreStatus = vendorData.manualStoreStatus;
     }
-  
+ 
     document.getElementById('chipName').textContent = name;
     document.getElementById('vendorSidebarName').textContent = name;
     document.getElementById('vendorSidebarStatus').textContent = status === 'active' ? 'Open Store' : status;
     document.getElementById('vendorAvatar').textContent = initial;
     document.getElementById('dashSubtitle').textContent = `Welcome back to ${name}`;
-  
+ 
     // Update user display with role info
     const userName = getUserDisplayName();
     document.getElementById('settingsSignedInAs').innerHTML = `${userName} <span style="color:var(--accent); font-size:0.7rem;">(${getUserRole()})</span>`;
-  
+ 
     const banner = document.getElementById('statusBanner');
     const bannerText = document.getElementById('bannerText');
     const bannerSub = document.getElementById('bannerSub');
     const bannerBadge = document.getElementById('bannerBadge');
-  
+ 
     // Check store hours
     const hoursStatus = checkStoreHours();
     const isOpen = getStoreOpenStatus();
-  
+ 
     if (status === 'active') {
         if (isOpen) {
             banner.style.background = 'var(--accent-light)';
@@ -2121,7 +2121,7 @@ function applyVendorUI() {
                 hoursStatus.message;
             bannerBadge.innerHTML = '<span class="badge badge-closed">CLOSED</span>';
         }
-      
+     
         // Add hours badge
         const hoursBadge = document.getElementById('storeHoursBadge') || createHoursBadge();
         hoursBadge.innerHTML = hoursStatus.isOpen ?
@@ -2140,7 +2140,7 @@ function applyVendorUI() {
         bannerBadge.innerHTML = '<span class="badge badge-disabled">DISABLED</span>';
         document.getElementById('storeHoursBadge')?.remove();
     }
-  
+ 
     // Update status toggle buttons
     if (manualStoreStatus === 'open') {
         document.querySelector('.status-btn.open').classList.add('active');
@@ -2158,7 +2158,7 @@ function applyVendorUI() {
             document.querySelector('.status-btn.closed').classList.add('active');
         }
     }
-  
+ 
     document.getElementById('profileAvatarInitials').textContent = initial;
     document.getElementById('profileHeaderName').textContent = name;
     document.getElementById('profileHeaderBadge').innerHTML = status === 'active' ? '<span class="badge badge-open">OPEN</span>' : status === 'pending' ? '<span class="badge badge-pending">PENDING</span>' : '<span class="badge badge-disabled">DISABLED</span>';
@@ -2579,7 +2579,7 @@ async function saveMenuItem() {
     if (!price || price <= 0) { showToast('Please enter a valid price', 'error'); return; }
     const file = document.getElementById('item-image').files[0];
     let imageURL = key ? (menuCache[key]?.imageURL || '') : '';
-  
+ 
     if (file) {
         showToast('Uploading image to Firebase Storage…', 'info');
         try {
@@ -2615,6 +2615,22 @@ async function saveMenuItem() {
         showToast(key ? `"${name}" updated!` : `"${name}" added to menu!`, 'success');
         hideModal('itemModal');
         syncFeaturedToGlobal();
+        
+        // === NEW: AUTO-MAP MENU ITEM CATEGORY TO VENDOR CUISINE FOR CUSTOMER FILTER TABS ===
+        // This is the key feature requested: when vendor adds a Pizza/Burgers/etc item,
+        // the restaurant automatically appears under the correct filter tab in the customer app.
+        const catLower = category.toLowerCase();
+        let newCuisine = vendorData?.cuisine || '';
+        if (catLower.includes('pizza')) newCuisine = 'Pizza';
+        else if (catLower.includes('burger')) newCuisine = 'Burgers';
+        else if (catLower.includes('sushi')) newCuisine = 'Sushi';
+        else if (catLower.includes('salad') || catLower.includes('healthy')) newCuisine = 'Healthy';
+        else if (catLower.includes('dessert')) newCuisine = 'Desserts';
+        
+        if (newCuisine && VENDOR_KEY) {
+            db.ref('vendors/' + VENDOR_KEY).update({ cuisine: newCuisine, updatedAt: Date.now() })
+                .then(() => console.log('Vendor cuisine auto-updated for customer filters:', newCuisine));
+        }
     }).catch((error) => {
         console.error('Save error:', error);
         showToast('Error saving item: ' + error.message, 'error');
@@ -2628,7 +2644,7 @@ function openDeleteModal(key, name) {
 async function confirmDelete() {
     const key = document.getElementById('del-key').value;
     if (!VENDOR_KEY || !key) return;
-  
+ 
     // If item has an image, delete it from Firebase Storage
     const item = menuCache[key];
     if (item && item.imageURL) {
@@ -2642,7 +2658,7 @@ async function confirmDelete() {
             // Continue with item deletion even if image delete fails
         }
     }
-  
+ 
     db.ref(`vendors/${VENDOR_KEY}/menu/${key}`).remove().then(() => {
         showToast('Item deleted', 'success');
         hideModal('deleteModal');
@@ -2899,7 +2915,7 @@ function openVendorLocationModal() {
     document.getElementById('vendorLocationModalOverlay').classList.add('active');
     document.getElementById('vendorLocationModal').classList.add('active');
     document.getElementById('vendorModalLocationInput').focus();
-  
+ 
     // Pre-fill radius from profile
     const currentRadius = document.getElementById('p-radius').value;
     selectVendorRadius(parseInt(currentRadius));
@@ -2962,13 +2978,13 @@ function fillVendorLocationFields(lat, lng, address) {
     // Parse address components (simplified)
     document.getElementById('p-lat').value = lat;
     document.getElementById('p-lng').value = lng;
-  
+ 
     // Try to extract street, city etc. from address string (basic split)
     const parts = address.split(',').map(s => s.trim());
     if (parts.length >= 1) document.getElementById('p-street').value = parts[0];
     if (parts.length >= 2) document.getElementById('p-city').value = parts[1];
     if (parts.length >= 3) document.getElementById('p-province').value = parts[2]?.split(' ')[0] || '';
-  
+ 
     showToast(`Location set: ${address}`);
 }
 // Mapbox autocomplete for vendor modal
