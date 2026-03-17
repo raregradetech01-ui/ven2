@@ -128,6 +128,16 @@
             margin-bottom: 4px; text-align: center;
         }
         .auth-sub { color: rgba(255,255,255,0.5); font-size: 0.82rem; text-align: center; margin-bottom: 20px; }
+        .auth-error {
+            background: rgba(255,59,48,0.15); border: 1px solid rgba(255,59,48,0.3);
+            border-radius: 12px; padding: 10px 14px; color: #ff6b63;
+            font-size: 0.82rem; font-weight: 600; display: none; margin-bottom: 12px;
+        }
+        .auth-success {
+            background: rgba(6,193,103,0.15); border: 1px solid rgba(6,193,103,0.3);
+            border-radius: 12px; padding: 10px 14px; color: var(--accent);
+            font-size: 0.82rem; font-weight: 600; display: none; margin-bottom: 12px;
+        }
         .auth-form { display: flex; flex-direction: column; gap: 14px; }
         .auth-form-group { display: flex; flex-direction: column; gap: 6px; }
         .auth-form-group label {
@@ -174,16 +184,6 @@
         }
         .auth-divider::before, .auth-divider::after {
             content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1);
-        }
-        .auth-error {
-            background: rgba(255,59,48,0.15); border: 1px solid rgba(255,59,48,0.3);
-            border-radius: 12px; padding: 10px 14px; color: #ff6b63;
-            font-size: 0.82rem; font-weight: 600; display: none; margin-bottom: 12px;
-        }
-        .auth-success {
-            background: rgba(6,193,103,0.15); border: 1px solid rgba(6,193,103,0.3);
-            border-radius: 12px; padding: 10px 14px; color: var(--accent);
-            font-size: 0.82rem; font-weight: 600; display: none; margin-bottom: 12px;
         }
         .auth-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         /* Vendor registration steps */
@@ -1025,7 +1025,7 @@
             <div class="stat-card">
                 <div class="stat-icon"><i data-lucide="trending-up" style="width:20px;height:20px;color:var(--accent);"></i></div>
                 <h3>Est. Revenue</h3>
-                <p id="stat-revenue" style="color:var(--accent);">R 0</p>
+                <p id="stat-revenue" style="color:var(--accent);">R 0.00</p>
             </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;">
@@ -1264,6 +1264,52 @@
             <div class="form-row">
                 <div class="form-group"><label>Business Reg. No.</label><input type="text" id="p-regno" placeholder="e.g. 2021/123456/07"></div>
                 <div class="form-group"><label>VAT Number</label><input type="text" id="p-vat" placeholder="e.g. 4123456789"></div>
+            </div>
+        </div>
+        <!-- NEW: Restaurant Categories Section -->
+        <div class="profile-section">
+            <h3><i data-lucide="tag" style="width:16px;height:16px;"></i> Restaurant Categories</h3>
+            <p style="color:var(--dim);font-size:0.88rem;margin-bottom:12px;">Select all categories that apply to your restaurant. These will help customers find you in the app.</p>
+            <div id="profile-categories" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 8px; padding: 12px; background: rgba(255,255,255,0.06); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="Pizza"> 🍕 Pizza
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="Burgers"> 🍔 Burgers
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="Sushi"> 🍣 Sushi
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="Healthy"> 🥗 Healthy
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="Desserts"> 🍰 Desserts
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="Fast Food"> 🍟 Fast Food
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="African"> 🇿🇦 African
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="Indian"> 🍛 Indian
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="Chinese"> 🥟 Chinese
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="Italian"> 🍝 Italian
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="Chicken"> 🍗 Chicken
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="Seafood"> 🦐 Seafood
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.9rem;cursor:pointer;">
+                    <input type="checkbox" class="profile-category" value="Vegetarian"> 🌱 Vegetarian
+                </label>
             </div>
         </div>
         <div class="profile-section">
@@ -1638,7 +1684,7 @@ async function uploadToFirebaseStorage(file, path) {
         const storageRef = storage.ref();
         const fileRef = storageRef.child(path);
         const uploadTask = fileRef.put(file);
-     
+
         uploadTask.on('state_changed',
             (snapshot) => {
                 // Progress tracking if needed
@@ -1924,7 +1970,7 @@ function getUserRole() {
 // Manual store status toggle
 function setManualStoreStatus(status) {
     manualStoreStatus = status;
- 
+
     // Update button styles
     document.querySelectorAll('.status-btn').forEach(btn => {
         btn.classList.remove('active');
@@ -1934,7 +1980,7 @@ function setManualStoreStatus(status) {
     } else {
         document.querySelector('.status-btn.closed').classList.add('active');
     }
- 
+
     // Save to Firebase
     if (VENDOR_KEY) {
         db.ref('vendors/' + VENDOR_KEY).update({
@@ -1942,7 +1988,7 @@ function setManualStoreStatus(status) {
             updatedAt: Date.now()
         });
     }
- 
+
     // Update UI
     updateStoreStatusDisplay();
     showToast(`Store manually set to ${status}`);
@@ -1952,49 +1998,49 @@ function getStoreOpenStatus() {
     if (manualStoreStatus) {
         return manualStoreStatus === 'open';
     }
- 
+
     // Otherwise check hours
     return checkStoreHours().isOpen;
 }
 function checkStoreHours() {
     if (!vendorData) return { isOpen: false, message: 'Hours not set' };
- 
+
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     const currentTime = currentHour * 60 + currentMinute;
- 
+
     // Get operating days
     const operatingDays = vendorData.operatingDays || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const daysMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const today = daysMap[now.getDay()];
- 
+
     if (!operatingDays.includes(today)) {
         return { isOpen: false, message: 'Closed today' };
     }
- 
+
     // Get opening and closing times
     const openTimeStr = vendorData.openingTime || '08:00';
     const closeTimeStr = vendorData.closingTime || '22:00';
- 
+
     const [openHour, openMin] = openTimeStr.split(':').map(Number);
     const [closeHour, closeMin] = closeTimeStr.split(':').map(Number);
- 
+
     const openTime = openHour * 60 + openMin;
     let closeTime = closeHour * 60 + closeMin;
- 
+
     // Handle overnight hours (if closing time is less than opening time, it means next day)
     if (closeTime < openTime) {
         closeTime += 24 * 60; // Add 24 hours
     }
- 
+
     let adjustedCurrentTime = currentTime;
     if (closeTime > 24 * 60 && currentTime < closeTime - 24 * 60) {
         adjustedCurrentTime += 24 * 60;
     }
- 
+
     const isOpen = adjustedCurrentTime >= openTime && adjustedCurrentTime < closeTime;
- 
+
     return {
         isOpen,
         message: isOpen ? `Open until ${closeTimeStr}` : `Opens at ${openTimeStr}`
@@ -2004,7 +2050,7 @@ function checkStoreHours() {
 function isWithinDeliveryRadius(customerLat, customerLng) {
     if (!vendorData || !vendorData.lat || !vendorData.lng) return true; // If no location set, always show
     if (!customerLat || !customerLng) return true; // If no customer location, show anyway
- 
+
     const R = 6371; // Earth's radius in km
     const dLat = (customerLat - vendorData.lat) * Math.PI / 180;
     const dLon = (customerLng - vendorData.lng) * Math.PI / 180;
@@ -2014,7 +2060,7 @@ function isWithinDeliveryRadius(customerLat, customerLng) {
         Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c;
- 
+
     const maxRadius = vendorData.deliveryRadius ? parseInt(vendorData.deliveryRadius) : 30;
     return distance <= maxRadius;
 }
@@ -2025,7 +2071,7 @@ function updateUserDisplay() {
         document.getElementById('vendorSidebarName').textContent = userName;
         document.getElementById('vendorAvatar').textContent = userName.charAt(0).toUpperCase();
         document.getElementById('settingsSignedInAs').innerHTML = `${userName} <span style="color:var(--accent); font-size:0.7rem;">(${getUserRole()})</span>`;
-     
+
         // Update store hours status
         const hoursStatus = checkStoreHours();
         const hoursBadge = document.getElementById('storeHoursBadge') || createHoursBadge();
@@ -2054,7 +2100,7 @@ function updateStoreStatusDisplay() {
     const bannerSub = document.getElementById('bannerSub');
     const bannerBadge = document.getElementById('bannerBadge');
     const hoursStatus = checkStoreHours();
- 
+
     if (isOpen) {
         banner.style.background = 'var(--accent-light)';
         banner.style.borderColor = 'var(--accent)';
@@ -2069,7 +2115,7 @@ function updateStoreStatusDisplay() {
         bannerText.textContent = `${vendorData?.name || 'Your store'} is Closed`;
         bannerSub.textContent = manualStoreStatus ?
             'Manually set to closed' :
-            (hoursStatus.message);
+            hoursStatus.message;
         bannerBadge.innerHTML = '<span class="badge badge-closed">CLOSED</span>';
     }
 }
@@ -2078,31 +2124,31 @@ function applyVendorUI() {
     const name = vendorData.name || 'My Restaurant';
     const status = vendorData.status || 'pending';
     const initial = name.charAt(0).toUpperCase();
- 
+
     // Load manual store status from Firebase if exists
     if (vendorData.manualStoreStatus) {
         manualStoreStatus = vendorData.manualStoreStatus;
     }
- 
+
     document.getElementById('chipName').textContent = name;
     document.getElementById('vendorSidebarName').textContent = name;
     document.getElementById('vendorSidebarStatus').textContent = status === 'active' ? 'Open Store' : status;
     document.getElementById('vendorAvatar').textContent = initial;
     document.getElementById('dashSubtitle').textContent = `Welcome back to ${name}`;
- 
+
     // Update user display with role info
     const userName = getUserDisplayName();
     document.getElementById('settingsSignedInAs').innerHTML = `${userName} <span style="color:var(--accent); font-size:0.7rem;">(${getUserRole()})</span>`;
- 
+
     const banner = document.getElementById('statusBanner');
     const bannerText = document.getElementById('bannerText');
     const bannerSub = document.getElementById('bannerSub');
     const bannerBadge = document.getElementById('bannerBadge');
- 
+
     // Check store hours
     const hoursStatus = checkStoreHours();
     const isOpen = getStoreOpenStatus();
- 
+
     if (status === 'active') {
         if (isOpen) {
             banner.style.background = 'var(--accent-light)';
@@ -2121,7 +2167,7 @@ function applyVendorUI() {
                 hoursStatus.message;
             bannerBadge.innerHTML = '<span class="badge badge-closed">CLOSED</span>';
         }
-     
+
         // Add hours badge
         const hoursBadge = document.getElementById('storeHoursBadge') || createHoursBadge();
         hoursBadge.innerHTML = hoursStatus.isOpen ?
@@ -2140,7 +2186,7 @@ function applyVendorUI() {
         bannerBadge.innerHTML = '<span class="badge badge-disabled">DISABLED</span>';
         document.getElementById('storeHoursBadge')?.remove();
     }
- 
+
     // Update status toggle buttons
     if (manualStoreStatus === 'open') {
         document.querySelector('.status-btn.open').classList.add('active');
@@ -2158,7 +2204,7 @@ function applyVendorUI() {
             document.querySelector('.status-btn.closed').classList.add('active');
         }
     }
- 
+
     document.getElementById('profileAvatarInitials').textContent = initial;
     document.getElementById('profileHeaderName').textContent = name;
     document.getElementById('profileHeaderBadge').innerHTML = status === 'active' ? '<span class="badge badge-open">OPEN</span>' : status === 'pending' ? '<span class="badge badge-pending">PENDING</span>' : '<span class="badge badge-disabled">DISABLED</span>';
@@ -2579,7 +2625,7 @@ async function saveMenuItem() {
     if (!price || price <= 0) { showToast('Please enter a valid price', 'error'); return; }
     const file = document.getElementById('item-image').files[0];
     let imageURL = key ? (menuCache[key]?.imageURL || '') : '';
- 
+
     if (file) {
         showToast('Uploading image to Firebase Storage…', 'info');
         try {
@@ -2615,7 +2661,7 @@ async function saveMenuItem() {
         showToast(key ? `"${name}" updated!` : `"${name}" added to menu!`, 'success');
         hideModal('itemModal');
         syncFeaturedToGlobal();
-        
+
         // === NEW: AUTO-MAP MENU ITEM CATEGORY TO VENDOR CUISINE FOR CUSTOMER FILTER TABS ===
         // This is the key feature requested: when vendor adds a Pizza/Burgers/etc item,
         // the restaurant automatically appears under the correct filter tab in the customer app.
@@ -2626,7 +2672,7 @@ async function saveMenuItem() {
         else if (catLower.includes('sushi')) newCuisine = 'Sushi';
         else if (catLower.includes('salad') || catLower.includes('healthy')) newCuisine = 'Healthy';
         else if (catLower.includes('dessert')) newCuisine = 'Desserts';
-        
+
         if (newCuisine && VENDOR_KEY) {
             db.ref('vendors/' + VENDOR_KEY).update({ cuisine: newCuisine, updatedAt: Date.now() })
                 .then(() => console.log('Vendor cuisine auto-updated for customer filters:', newCuisine));
@@ -2644,7 +2690,7 @@ function openDeleteModal(key, name) {
 async function confirmDelete() {
     const key = document.getElementById('del-key').value;
     if (!VENDOR_KEY || !key) return;
- 
+
     // If item has an image, delete it from Firebase Storage
     const item = menuCache[key];
     if (item && item.imageURL) {
@@ -2658,7 +2704,7 @@ async function confirmDelete() {
             // Continue with item deletion even if image delete fails
         }
     }
- 
+
     db.ref(`vendors/${VENDOR_KEY}/menu/${key}`).remove().then(() => {
         showToast('Item deleted', 'success');
         hideModal('deleteModal');
@@ -2694,6 +2740,12 @@ function populateProfileForm() {
         cb.checked = savedDays.includes(cb.value);
         cb.closest('label').classList.toggle('checked', cb.checked);
     });
+
+    // Load selected categories
+    const savedCategories = Array.isArray(vendorData.categories) ? vendorData.categories : [];
+    document.querySelectorAll('#profile-categories input[type=checkbox]').forEach(cb => {
+        cb.checked = savedCategories.includes(cb.value);
+    });
 }
 function togglePDay(cb) {
     cb.closest('label').classList.toggle('checked', cb.checked);
@@ -2703,6 +2755,7 @@ function saveStoreProfile() {
     const name = document.getElementById('p-name').value.trim();
     if (!name) { showToast('Business name is required', 'error'); return; }
     const days = Array.from(document.querySelectorAll('#p-days input[type=checkbox]:checked')).map(c => c.value);
+    const categories = Array.from(document.querySelectorAll('#profile-categories input[type=checkbox]:checked')).map(c => c.value);
     const upd = {
         name,
         tradingName: document.getElementById('p-tradename').value.trim(),
@@ -2730,6 +2783,7 @@ function saveStoreProfile() {
         closingTime: document.getElementById('p-close').value,
         avgPrepTime: document.getElementById('p-preptime').value,
         operatingDays: days,
+        categories: categories, // Save selected categories
         updatedAt: Date.now(),
     };
     db.ref('vendors/' + VENDOR_KEY).update(upd).then(() => {
@@ -2915,7 +2969,7 @@ function openVendorLocationModal() {
     document.getElementById('vendorLocationModalOverlay').classList.add('active');
     document.getElementById('vendorLocationModal').classList.add('active');
     document.getElementById('vendorModalLocationInput').focus();
- 
+
     // Pre-fill radius from profile
     const currentRadius = document.getElementById('p-radius').value;
     selectVendorRadius(parseInt(currentRadius));
@@ -2944,6 +2998,7 @@ function detectVendorCurrentLocation() {
     navigator.geolocation.getCurrentPosition(
         async (position) => {
             const { latitude, longitude } = position.coords;
+
             try {
                 const response = await fetch(
                     `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${longitude}&latitude=${latitude}&access_token=${MAPBOX_TOKEN}&limit=1`
@@ -2978,13 +3033,13 @@ function fillVendorLocationFields(lat, lng, address) {
     // Parse address components (simplified)
     document.getElementById('p-lat').value = lat;
     document.getElementById('p-lng').value = lng;
- 
+
     // Try to extract street, city etc. from address string (basic split)
     const parts = address.split(',').map(s => s.trim());
     if (parts.length >= 1) document.getElementById('p-street').value = parts[0];
     if (parts.length >= 2) document.getElementById('p-city').value = parts[1];
     if (parts.length >= 3) document.getElementById('p-province').value = parts[2]?.split(' ')[0] || '';
- 
+
     showToast(`Location set: ${address}`);
 }
 // Mapbox autocomplete for vendor modal
@@ -2992,10 +3047,12 @@ let vendorDebounceTimer;
 document.getElementById('vendorModalLocationInput')?.addEventListener('input', (e) => {
     clearTimeout(vendorDebounceTimer);
     const query = e.target.value;
+
     if (query.length < 3) {
         document.getElementById('vendorLocationSuggestions').innerHTML = '';
         return;
     }
+
     vendorDebounceTimer = setTimeout(() => {
         fetchVendorMapboxSuggestions(query);
     }, 300);
@@ -3013,10 +3070,12 @@ async function fetchVendorMapboxSuggestions(query) {
 }
 function displayVendorSuggestions(suggestions) {
     const container = document.getElementById('vendorLocationSuggestions');
+
     if (suggestions.length === 0) {
         container.innerHTML = '';
         return;
     }
+
     container.innerHTML = suggestions.map(feature => {
         const address = feature.properties?.full_address || feature.properties?.name || 'Unknown';
         const [lng, lat] = feature.geometry.coordinates;
@@ -3027,6 +3086,7 @@ function displayVendorSuggestions(suggestions) {
             </div>
         `;
     }).join('');
+
     lucide.createIcons();
 }
 window.selectVendorLocation = (lat, lng, address) => {
