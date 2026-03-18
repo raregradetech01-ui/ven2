@@ -105,7 +105,7 @@
             font-family: inherit; font-weight: 600; font-size: 0.82rem;
             cursor: pointer; transition: var(--transition);
         }
-        .auth-tab.active { background: var(--accent); color: black; }
+        .auth-tab.active { background: var(--accent); color: white; }
         .auth-panel { display: block; }
         .auth-panel.hidden { display: none; }
         .auth-title { font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 4px; text-align: center; }
@@ -161,9 +161,9 @@
         .reg-step { display: none; }
         .reg-step.active { display: flex; flex-direction: column; gap: 14px; }
         .step-indicator { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
-        .step-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: var(--transition); }
-        .step-dot.active { background: var(--accent); width: 24px; border-radius: 4px; }
-        .step-dot.done { background: var(--accent); }
+        .step-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.45); border: 1.5px solid rgba(255,255,255,0.6); transition: var(--transition); }
+        .step-dot.active { background: var(--accent); border-color: var(--accent); width: 24px; border-radius: 4px; box-shadow: 0 0 0 3px rgba(6,193,103,0.3); }
+        .step-dot.done { background: var(--accent); border-color: var(--accent); }
         #vendorRegisterPanel {
             max-height: 82vh; overflow-y: auto; padding-right: 8px;
             scrollbar-width: thin; scrollbar-color: rgba(6,193,103,0.5) rgba(255,255,255,0.06);
@@ -518,7 +518,8 @@
                         <label>Restaurant Name *</label>
                         <input type="text" class="auth-input" id="reg-name" placeholder="e.g. Pizza Palace">
                     </div>
-                      <div class="auth-form-row">
+                    
+                    <div class="auth-form-row">
                         <div class="auth-form-group">
                             <label>City *</label>
                             <input type="text" class="auth-input" id="reg-city" placeholder="e.g. Johannesburg">
@@ -531,11 +532,6 @@
                                 <option value="Western Cape">Western Cape</option>
                                 <option value="KwaZulu-Natal">KwaZulu-Natal</option>
                                 <option value="Eastern Cape">Eastern Cape</option>
-                                <option value="Eastern Cape">Limpopo</option>
-                                <option value="Eastern Cape">Free State</option>
-                                <option value="Eastern Cape">North West</option>
-                                <option value="Eastern Cape">Northern Cape</option>
-                                <option value="Eastern Cape">Mpumalanga</option>
                             </select>
                         </div>
                     </div>
@@ -1288,8 +1284,8 @@ lucide.createIcons();
 
 // ==================== CLOUDINARY CONFIG ====================
 // ⚠️  Replace these with your actual Cloudinary credentials
-const CLOUDINARY_CLOUD_NAME = 'dqkujefxj';       // e.g. 'dxyz123abc'
-const CLOUDINARY_UPLOAD_PRESET = 'banter_box'; // e.g. 'vynix_unsigned'
+const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUD_NAME';       // e.g. 'dxyz123abc'
+const CLOUDINARY_UPLOAD_PRESET = 'YOUR_UPLOAD_PRESET'; // e.g. 'vynix_unsigned'
 
 async function uploadToCloudinary(file, onProgress) {
     const formData = new FormData();
@@ -1384,7 +1380,6 @@ function vendorNext(step) {
     err.style.display = 'none';
     if (step === 0) {
         if (!document.getElementById('reg-name').value.trim()) { err.textContent='Restaurant name required'; err.style.display='block'; return; }
-        if (document.querySelectorAll('#reg-categories input[type="checkbox"]:checked').length === 0) { err.textContent='Select at least one shop category'; err.style.display='block'; return; }
         if (!document.getElementById('reg-city').value.trim()) { err.textContent='City required'; err.style.display='block'; return; }
         if (!document.getElementById('reg-province').value) { err.textContent='Select province'; err.style.display='block'; return; }
     } else if (step === 1) {
@@ -1438,7 +1433,7 @@ async function submitVendorRegistration() {
     const btn = document.getElementById('vendorRegSubmit');
     err.style.display = 'none';
     btn.disabled = true;
-    const selectedCategories = Array.from(document.querySelectorAll('#reg-categories input[type="checkbox"]:checked')).map(cb => cb.value);
+    const selectedCategories = Array.from(document.querySelectorAll('#reg-categories input[type="checkbox"]:checked')).map(cb => cb.value); // categories selected in profile, not registration
     const application = {
         name: document.getElementById('reg-name').value.trim(),
         categories: selectedCategories, shopCategories: selectedCategories,
