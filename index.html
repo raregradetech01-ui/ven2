@@ -276,7 +276,7 @@
         .order-customer-avatar { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg,var(--purple),#8b5cf6); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.75rem; flex-shrink: 0; }
         .order-customer-details { display: flex; flex-direction: column; gap: 1px; }
         .order-customer-name { font-weight: 700; font-size: 0.86rem; color: var(--text); }
-        .order-customer-id { font-size: 0.72rem; color: var(--dim); font-weight: 600; font-family: monospace; }
+        .order-customer-id { font-size: 0.72rem; color: var(--dim); font-weight: 600; }
 
         /* IMAGE PENDING APPROVAL BADGE */
         .img-pending-badge { background: #fff5cc; border: 1px solid #ffe066; color: #997300; border-radius: 8px; padding: 4px 10px; font-size: 0.68rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; }
@@ -313,22 +313,6 @@
         .settings-row:last-child { border-bottom:none; }
         #settings .form-group input, #settings .form-group select { border-radius: 999px !important; padding: 12px 18px; border: 1.5px solid var(--border); font-family: inherit; font-size: 0.92rem; outline: none; transition: var(--transition); background: var(--bg); color: var(--text); }
         #settings .form-group input:focus, #settings .form-group select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.12); background: white; }
-
-        .delivery-preview-card {
-            background: linear-gradient(135deg, var(--accent-light), #f0fdf4);
-            border: 1.5px solid var(--accent); border-radius: 16px; padding: 18px 22px;
-            margin-top: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
-        }
-        .delivery-preview-card .preview-title {
-            font-size: 0.72rem; font-weight: 700; color: var(--accent-dark); text-transform: uppercase;
-            letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; width: 100%;
-        }
-        .delivery-preview-pill {
-            background: white; border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px;
-            font-size: 0.82rem; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 90px;
-        }
-        .delivery-preview-pill .pill-value { font-size: 1rem; font-weight: 800; color: var(--text); }
-        .delivery-preview-pill .pill-label { font-size: 0.65rem; color: var(--dim); font-weight: 600; }
 
         .day-label { display:flex;align-items:center;gap:5px;font-size:0.83rem;font-weight:600;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:7px 16px;cursor:pointer;transition:var(--transition); }
         .day-label.checked { background:var(--accent);border-color:var(--accent);color:white; }
@@ -978,21 +962,7 @@
                 <div class="settings-row"><div><div style="font-weight:600;">Order SMS Notifications</div><div style="font-size:0.82rem;color:var(--dim);">Receive SMS for each order</div></div><div class="toggle" id="tog-sms" onclick="toggleSetting(this,'smsNotifs')"></div></div>
             </div>
 
-            <div style="background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:24px;">
-                <h3 style="font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px;"><i data-lucide="tag" style="width:18px;height:18px;color:var(--accent);"></i> Delivery Fees</h3>
-                <p style="color:var(--dim);font-size:0.82rem;margin-bottom:18px;">These values appear on your restaurant card in the customer app.</p>
-                <div class="form-row">
-                    <div class="form-group"><label>Delivery Fee (R)</label><input type="number" id="s-deliveryfee" placeholder="e.g. 30" min="0" oninput="updateDeliveryPreview()"></div>
-                    <div class="form-group"><label>Free Delivery Over (R)</label><input type="number" id="s-freedeilvery" placeholder="e.g. 300" min="0" oninput="updateDeliveryPreview()"></div>
-                </div>
-                <div class="form-group"><label>Estimated Delivery Time</label><input type="text" id="s-deliverytime" placeholder="e.g. 25-40 min" oninput="updateDeliveryPreview()"></div>
-                <div class="delivery-preview-card" id="deliveryPreviewCard">
-                    <div class="preview-title"><i data-lucide="eye" style="width:14px;height:14px;"></i> Customer app card preview — live</div>
-                    <div class="delivery-preview-pill"><span class="pill-value" id="preview-time">— min</span><span class="pill-label">Delivery time</span></div>
-                    <div class="delivery-preview-pill"><span class="pill-value" id="preview-fee">R —</span><span class="pill-label">Delivery fee</span></div>
-                    <div class="delivery-preview-pill" id="preview-free-wrap" style="display:none;"><span class="pill-value" id="preview-free">R —</span><span class="pill-label">Free delivery over</span></div>
-                </div>
-            </div>
+            <!-- Delivery Fees section removed as requested -->
 
             <div style="background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:24px;">
                 <h3 style="font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;color:var(--danger);"><i data-lucide="log-out" style="width:18px;height:18px;"></i> Session</h3>
@@ -1157,6 +1127,22 @@
         <div class="modal-btn-row">
             <button class="btn btn-danger" style="flex:1;justify-content:center;padding:14px;" onclick="confirmDelete()"><i data-lucide="trash-2" style="width:15px;height:15px;"></i> Delete</button>
             <button class="btn btn-edit" style="flex:1;justify-content:center;padding:14px;" onclick="hideModal('deleteModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE ORDER MODAL -->
+<div class="modal-overlay" id="deleteOrderModal">
+    <div class="modal-content" style="max-width:400px;text-align:center;">
+        <div style="width:64px;height:64px;border-radius:50%;background:#fff1f0;border:2px solid #ffcdc9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <i data-lucide="trash-2" style="width:28px;height:28px;color:var(--danger);"></i>
+        </div>
+        <h3 style="justify-content:center;font-size:1.2rem;">Delete Order?</h3>
+        <p style="color:var(--dim);margin-bottom:0;">This will permanently remove order <strong id="del-order-number"></strong>.</p>
+        <input type="hidden" id="del-order-key">
+        <div class="modal-btn-row">
+            <button class="btn btn-danger" style="flex:1;justify-content:center;padding:14px;" onclick="confirmDeleteOrder()"><i data-lucide="trash-2" style="width:15px;height:15px;"></i> Delete</button>
+            <button class="btn btn-edit" style="flex:1;justify-content:center;padding:14px;" onclick="hideModal('deleteOrderModal')">Cancel</button>
         </div>
     </div>
 </div>
@@ -1577,10 +1563,6 @@ function applyVendorUI() {
             <i data-lucide="phone" style="width:15px;height:15px;color:var(--accent);flex-shrink:0;"></i>
             <span style="font-size:0.85rem;color:var(--dim);">${vendorData.phone||'Phone not set'}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
-            <i data-lucide="tag" style="width:15px;height:15px;color:var(--accent);flex-shrink:0;"></i>
-            <span style="font-size:0.85rem;color:var(--dim);">Delivery fee: R${vendorData.deliveryFee||'—'} • ${vendorData.deliveryTime||'—'}</span>
-        </div>
         <div style="display:flex;align-items:center;gap:10px;padding:6px 0;">
             <i data-lucide="navigation" style="width:15px;height:15px;color:var(--accent);flex-shrink:0;"></i>
             <span style="font-size:0.85rem;color:var(--dim);">Delivery radius: ${vendorData.deliveryRadius||'5'} km</span>
@@ -1714,7 +1696,7 @@ function syncFeaturedToGlobal() {
     db.ref(`featured_items/${VENDOR_KEY}`).set(Object.keys(featured).length?featured:null);
 }
 
-// ==================== ORDERS — with item images, customer name & ID ====================
+// ==================== ORDERS — with customer email and delete option ====================
 function renderOrders() {
     const container=document.getElementById('ordersContainer');
     const filter=document.getElementById('orderFilter')?.value||'all';
@@ -1727,7 +1709,7 @@ function renderOrders() {
         // Customer info — check all common field paths
         const customer=o.customer||o.user||{};
         const customerName=customer.name||customer.displayName||o.customerName||o.userName||'Customer';
-        const customerId=customer.id||customer.uid||o.customerId||o.userId||o.customerID||'';
+        const customerEmail = customer.email || o.customerEmail || o.email || '';  // NEW: extract email
         const customerPhone=customer.phone||o.customerPhone||'';
         const customerInitial=customerName.charAt(0).toUpperCase();
 
@@ -1751,13 +1733,13 @@ function renderOrders() {
             itemsHTML=`<div class="order-items-strip">${chips}</div>`;
         }
 
-        // Customer bar with name and ID
+        // Customer bar with name and email (instead of ID)
         const customerBar=`<div class="order-customer-bar">
             <div class="order-customer-avatar">${customerInitial}</div>
             <div class="order-customer-details">
                 <span class="order-customer-name">👤 ${customerName}</span>
-                ${customerId?`<span class="order-customer-id">ID: ${customerId}</span>`:''}
-                ${customerPhone?`<span style="font-size:0.72rem;color:var(--dim);font-weight:600;">📞 ${customerPhone}</span>`:''}
+                ${customerEmail ? `<span class="order-customer-id">📧 ${customerEmail}</span>` : ''}
+                ${customerPhone ? `<span style="font-size:0.72rem;color:var(--dim);font-weight:600;">📞 ${customerPhone}</span>` : ''}
             </div>
         </div>`;
 
@@ -1775,6 +1757,8 @@ function renderOrders() {
                 <div style="text-align:right;flex-shrink:0;">
                     <div style="font-weight:800;font-size:1.1rem;color:var(--accent);">${fmtCurrency(o.total)}</div>
                     ${orderItems.length?`<div style="font-size:0.76rem;color:var(--dim);margin-top:2px;">${orderItems.length} item${orderItems.length!==1?'s':''}</div>`:''}
+                    <!-- Delete order button -->
+                    <button class="icon-btn icon-btn-delete" onclick="openDeleteOrderModal('${key}', '${o.orderNumber||key.slice(-6).toUpperCase()}')" style="margin-top:8px;width:auto;padding:5px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;"><i data-lucide="trash-2" style="width:12px;height:12px;"></i> Delete</button>
                 </div>
             </div>
             ${o.status==='pending'?`<div style="margin-top:12px;display:flex;gap:8px;"><button class="btn btn-success" onclick="updateOrderStatus('${key}','preparing')"><i data-lucide="chef-hat" style="width:13px;height:13px;"></i> Accept & Prepare</button><button class="btn btn-danger" onclick="updateOrderStatus('${key}','cancelled')"><i data-lucide="x" style="width:13px;height:13px;"></i> Decline</button></div>`:''}
@@ -1797,6 +1781,23 @@ function renderRecentOrders() {
 }
 function updateOrderStatus(key,newStatus) {
     db.ref('orders/'+key).update({status:newStatus,updatedAt:Date.now()}).then(()=>showToast(`Order status updated to ${newStatus}`,'success')).catch(()=>showToast('Error updating order','error'));
+}
+
+// ==================== DELETE ORDER MODAL ====================
+function openDeleteOrderModal(key, orderNumber) {
+    document.getElementById('del-order-key').value = key;
+    document.getElementById('del-order-number').textContent = orderNumber;
+    showModal('deleteOrderModal');
+}
+function confirmDeleteOrder() {
+    const key = document.getElementById('del-order-key').value;
+    if (!key) return;
+    db.ref('orders/' + key).remove()
+        .then(() => {
+            showToast('Order deleted successfully', 'success');
+            hideModal('deleteOrderModal');
+        })
+        .catch(err => showToast('Error deleting order: ' + err.message, 'error'));
 }
 
 // ==================== MENU ITEM MODAL ====================
@@ -2047,23 +2048,7 @@ function selectInlineLocation(lat, lng, address) {
     showToast(`Location set: ${address.split(',')[0]}`, 'success');
 }
 
-// ==================== DELIVERY PREVIEW ====================
-function updateDeliveryPreview() {
-    const fee = document.getElementById('s-deliveryfee').value;
-    const free = document.getElementById('s-freedeilvery').value;
-    const time = document.getElementById('s-deliverytime').value;
-    document.getElementById('preview-fee').textContent = fee ? `R ${parseFloat(fee).toFixed(2)}` : 'R —';
-    document.getElementById('preview-time').textContent = time || '— min';
-    if (free && parseFloat(free) > 0) {
-        document.getElementById('preview-free').textContent = `R ${parseFloat(free).toFixed(2)}`;
-        document.getElementById('preview-free-wrap').style.display = 'flex';
-    } else {
-        document.getElementById('preview-free-wrap').style.display = 'none';
-    }
-    lucide.createIcons();
-}
-
-// ==================== SETTINGS ====================
+// ==================== SETTINGS (without delivery fees) ====================
 const defaultSettings={storeOpen:true,onlineOrders:true,deliveryAvailable:true,takeawayAvailable:true,orderAlerts:true,smsNotifs:false};
 const toggleMap={storeOpen:'tog-open',onlineOrders:'tog-online',deliveryAvailable:'tog-delivery',takeawayAvailable:'tog-takeaway',orderAlerts:'tog-alerts',smsNotifs:'tog-sms'};
 let settingsState={};
@@ -2072,37 +2057,19 @@ function loadSettings() {
     const saved=JSON.parse(localStorage.getItem('vynix_vendor_settings')||'{}');
     Object.assign(settingsState,defaultSettings,saved);
     Object.entries(toggleMap).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',!!settingsState[k]);});
-    if(VENDOR_KEY&&vendorData){
-        const fee = vendorData.deliveryFee ?? vendorData.settings?.deliveryFee ?? '';
-        const freeOver = vendorData.freeDeliveryOver ?? vendorData.settings?.freeDeliveryOver ?? '';
-        const time = vendorData.deliveryTime ?? vendorData.settings?.deliveryTime ?? '';
-        document.getElementById('s-deliveryfee').value = fee;
-        document.getElementById('s-freedeilvery').value = freeOver;
-        document.getElementById('s-deliverytime').value = time;
-        updateDeliveryPreview();
-    }
 }
+
 function toggleSetting(el,key){el.classList.toggle('on');settingsState[key]=el.classList.contains('on');}
 
 function saveSettings() {
     localStorage.setItem('vynix_vendor_settings', JSON.stringify(settingsState));
-    const deliveryFee      = document.getElementById('s-deliveryfee').value;
-    const freeDeliveryOver = document.getElementById('s-freedeilvery').value;
-    const deliveryTime     = document.getElementById('s-deliverytime').value;
     if (VENDOR_KEY) {
         const rootUpdate = {
-            deliveryFee:      deliveryFee      ? parseFloat(deliveryFee)      : 0,
-            freeDeliveryOver: freeDeliveryOver ? parseFloat(freeDeliveryOver) : 0,
-            deliveryTime:     deliveryTime     || '20-35 min',
-            updatedAt:        Date.now(),
+            // No deliveryFee, freeDeliveryOver, deliveryTime
+            manualStoreStatus: (!settingsState.storeOpen) ? 'closed' : (settingsState.storeOpen ? 'open' : undefined),
+            updatedAt: Date.now(),
         };
-        if (!settingsState.storeOpen || !settingsState.onlineOrders) {
-            rootUpdate.manualStoreStatus = (!settingsState.storeOpen) ? 'closed' : 'open';
-        }
         const settingsUpdate = {
-            deliveryFee:       rootUpdate.deliveryFee,
-            freeDeliveryOver:  rootUpdate.freeDeliveryOver,
-            deliveryTime:      rootUpdate.deliveryTime,
             storeOpen:         settingsState.storeOpen,
             onlineOrders:      settingsState.onlineOrders,
             deliveryAvailable: settingsState.deliveryAvailable,
@@ -2114,8 +2081,7 @@ function saveSettings() {
             db.ref('vendors/' + VENDOR_KEY + '/settings').update(settingsUpdate),
         ])
         .then(() => {
-            showToast(`Settings saved! Delivery fee R${rootUpdate.deliveryFee} · ${rootUpdate.deliveryTime}`, 'success');
-            updateDeliveryPreview();
+            showToast('Settings saved!', 'success');
         })
         .catch(() => showToast('Error saving settings', 'error'));
     } else {
@@ -2219,7 +2185,7 @@ function hideModal(id) {
 }
 window.onclick=e=>{
     if(e.target.classList.contains('modal-overlay'))
-        ['itemModal','deleteModal','logoutModal'].forEach(id=>{const el=document.getElementById(id);if(el&&el===e.target)hideModal(id);});
+        ['itemModal','deleteModal','deleteOrderModal','logoutModal'].forEach(id=>{const el=document.getElementById(id);if(el&&el===e.target)hideModal(id);});
 };
 
 // ==================== SIDEBAR HOVER ====================
