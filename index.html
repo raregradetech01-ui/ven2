@@ -619,7 +619,7 @@
             <div class="nav-label">Account</div>
             <div class="nav-item" onclick="showVendorTab('profile',this)"><i data-lucide="store" class="nav-icon"></i><span class="nav-text">Store Profile</span></div>
             <div class="nav-item" onclick="showVendorTab('settings',this)"><i data-lucide="settings" class="nav-icon"></i><span class="nav-text">Settings</span></div>
-            <button class="logout-btn" onclick="logout('vendor')"><i data-lucide="log-out" class="nav-icon" style="color:var(--danger);"></i><span class="nav-text">Log Out</span></button>
+            <button class="logout-btn" onclick="openLogoutModal()"><i data-lucide="log-out" class="nav-icon" style="color:var(--danger);"></i><span class="nav-text">Log Out</span></button>
         </div>
     </div>
     <div class="user-profile" onclick="showVendorTab('profile',null)">
@@ -991,7 +991,7 @@
                 <h3 style="font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;color:var(--danger);"><i data-lucide="log-out" style="width:18px;height:18px;"></i> Session</h3>
                 <div class="settings-row">
                     <div><div style="font-weight:600;">Signed in as</div><div style="font-size:0.82rem;color:var(--dim);" id="settingsSignedInAs">Vendor</div></div>
-                    <button class="btn btn-danger" onclick="logout('vendor')" style="padding:10px 20px;"><i data-lucide="log-out" style="width:14px;height:14px;"></i> Log Out</button>
+                    <button class="btn btn-danger" onclick="openLogoutModal()" style="padding:10px 20px;"><i data-lucide="log-out" style="width:14px;height:14px;"></i> Log Out</button>
                 </div>
             </div>
         </div>
@@ -1015,7 +1015,7 @@
             <div class="nav-item" onclick="showDriverTab('driverOrders',this)"><i data-lucide="shopping-bag" class="nav-icon"></i><span class="nav-text">My Orders</span></div>
             <div class="nav-item" onclick="showDriverTab('driverProfile',this)"><i data-lucide="user" class="nav-icon"></i><span class="nav-text">Profile</span></div>
         </div>
-        <button class="logout-btn" onclick="logout('driver')" style="color:#ff8a7a;"><i data-lucide="log-out" class="nav-icon"></i><span class="nav-text">Log Out</span></button>
+        <button class="logout-btn" onclick="openLogoutModal()" style="color:#ff8a7a;"><i data-lucide="log-out" class="nav-icon"></i><span class="nav-text">Log Out</span></button>
     </div>
     <div class="user-profile" style="background:#1e3327;" onclick="showDriverTab('driverProfile',null)">
         <div class="user-avatar" id="driverAvatar">D</div>
@@ -1234,10 +1234,25 @@
     </div>
 </div>
 
+<!-- LOGOUT CONFIRMATION MODAL -->
+<div class="modal-overlay" id="logoutConfirmModal">
+    <div class="modal-content" style="max-width:400px;text-align:center;">
+        <div style="width:64px;height:64px;border-radius:50%;background:#fff1f0;border:2px solid #ffcdc9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <i data-lucide="log-out" style="width:28px;height:28px;color:var(--danger);"></i>
+        </div>
+        <h3 style="justify-content:center;">Log Out?</h3>
+        <p style="color:var(--dim);margin-bottom:16px;">Are you sure you want to log out? You will be redirected to the login screen.</p>
+        <div class="modal-btn-row">
+            <button class="btn btn-danger" style="flex:1;justify-content:center;padding:14px;" onclick="confirmLogout()"><i data-lucide="log-out" style="width:15px;height:15px;"></i> Yes, Log Out</button>
+            <button class="btn btn-edit" style="flex:1;justify-content:center;padding:14px;" onclick="hideModal('logoutConfirmModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <!-- IMAGE DECLINED NOTIFICATION MODAL (for vendor) -->
 <div class="modal-overlay" id="imageDeclinedModal">
-    <div class="modal-content modal-sm" style="max-width:400px;text-align:center;">
-        <div class="modal-warning-icon" style="width:64px;height:64px;border-radius:50%;background:#fff1f0;border:2px solid #ffcdc9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+    <div class="modal-content" style="max-width:400px;text-align:center;">
+        <div style="width:64px;height:64px;border-radius:50%;background:#fff1f0;border:2px solid #ffcdc9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
             <i data-lucide="x-circle" style="width:28px;height:28px;color:var(--danger);"></i>
         </div>
         <h3 style="justify-content:center;">Image Declined</h3>
@@ -1318,6 +1333,7 @@ let manualStoreStatus = null;
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
 let inlineSelectedRadius = 5;
 let approvedDrivers = [];
+let shownDeclineNotifs = new Set(); // Track shown decline notifications to prevent duplicate popups on refresh
 
 // ==================== AUTH UI ====================
 function setRole(role) {
@@ -1508,8 +1524,9 @@ function startVendorNotifications() {
     if (!VENDOR_KEY) return;
     db.ref(`vendors/${VENDOR_KEY}/notifications`).on('child_added', snap => {
         const notif = snap.val();
-        if (notif && notif.type === 'image_declined' && notif.reason) {
-            // Show popup modal to vendor
+        const notifId = snap.key;
+        if (notif && notif.type === 'image_declined' && notif.reason && !shownDeclineNotifs.has(notifId)) {
+            shownDeclineNotifs.add(notifId);
             document.getElementById('declineReasonDisplay').innerHTML = `
                 <strong>${notif.itemName || 'Menu item'}</strong><br>
                 Reason: ${notif.reason}<br>
@@ -2359,13 +2376,27 @@ window.markOrderPickedUp = () => { showToast('Mark as picked up - to be implemen
 window.markOrderDelivered = () => { showToast('Mark as delivered - to be implemented'); };
 
 // ==================== LOGOUT ====================
-function logout(role) {
-    if(role==='vendor'){localStorage.removeItem('vynix_vendor_session');VENDOR_KEY=null;document.getElementById('vendorSidebar').style.display='none';document.getElementById('vendorMainPanel').style.display='none';}
-    else{localStorage.removeItem('vynix_driver_session');DRIVER_KEY=null;document.getElementById('driverSidebar').style.display='none';document.getElementById('driverMainPanel').style.display='none';}
-    document.getElementById('authScreen').classList.remove('hidden');
-    setRole('vendor');switchVendorTab('login');
+function openLogoutModal() {
+    showModal('logoutConfirmModal');
 }
-function confirmLogout(){hideModal('logoutModal');logout(currentRole);}
+function confirmLogout() {
+    if (currentRole === 'vendor') {
+        localStorage.removeItem('vynix_vendor_session');
+        VENDOR_KEY = null;
+        document.getElementById('vendorSidebar').style.display = 'none';
+        document.getElementById('vendorMainPanel').style.display = 'none';
+    } else {
+        localStorage.removeItem('vynix_driver_session');
+        DRIVER_KEY = null;
+        document.getElementById('driverSidebar').style.display = 'none';
+        document.getElementById('driverMainPanel').style.display = 'none';
+    }
+    document.getElementById('authScreen').classList.remove('hidden');
+    setRole('vendor');
+    switchVendorTab('login');
+    hideModal('logoutConfirmModal');
+    shownDeclineNotifs.clear(); // Clear the decline notifications set on logout
+}
 
 // ==================== SESSION CHECK ====================
 (function checkSession() {
@@ -2395,7 +2426,7 @@ function hideModal(id) {
 }
 window.onclick=e=>{
     if(e.target.classList.contains('modal-overlay'))
-        ['itemModal','deleteModal','deleteOrderModal','assignDriverModal','logoutModal','imageDeclinedModal'].forEach(id=>{const el=document.getElementById(id);if(el&&el===e.target)hideModal(id);});
+        ['itemModal','deleteModal','deleteOrderModal','assignDriverModal','logoutConfirmModal','imageDeclinedModal'].forEach(id=>{const el=document.getElementById(id);if(el&&el===e.target)hideModal(id);});
 };
 
 // ==================== SIDEBAR HOVER ====================
