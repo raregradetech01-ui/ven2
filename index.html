@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
+        /* ==================== ALL STYLES REMAIN UNCHANGED ==================== */
         :root {
             --bg: #f4f7f6;
             --surface: #ffffff;
@@ -1029,8 +1030,8 @@
         <div class="page-header">
             <h1>Driver Dashboard</h1>
             <div class="btn-group">
-                <button class="btn btn-success" onclick="updateDriverStatus('online')">🟢 Go Online</button>
-                <button class="btn btn-edit" onclick="updateDriverStatus('offline')">⚫ Go Offline</button>
+                <button class="btn btn-success" onclick="updateDriverOnlineStatus('online')">🟢 Go Online</button>
+                <button class="btn btn-edit" onclick="updateDriverOnlineStatus('offline')">⚫ Go Offline</button>
             </div>
         </div>
         <div class="driver-stats-grid">
@@ -1333,7 +1334,6 @@ let manualStoreStatus = null;
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
 let inlineSelectedRadius = 5;
 let approvedDrivers = [];
-let shownDeclineNotifs = new Set(); // Track shown decline notifications to prevent duplicate popups on refresh
 
 // ==================== AUTH UI ====================
 function setRole(role) {
@@ -1519,23 +1519,8 @@ function hideShimmer() {
     setTimeout(() => { sh.style.display = 'none'; sh.classList.remove('fade-out'); }, 600);
 }
 
-// ==================== VENDOR NOTIFICATIONS LISTENER (for image declines) ====================
-function startVendorNotifications() {
-    if (!VENDOR_KEY) return;
-    db.ref(`vendors/${VENDOR_KEY}/notifications`).on('child_added', snap => {
-        const notif = snap.val();
-        const notifId = snap.key;
-        if (notif && notif.type === 'image_declined' && notif.reason && !shownDeclineNotifs.has(notifId)) {
-            shownDeclineNotifs.add(notifId);
-            document.getElementById('declineReasonDisplay').innerHTML = `
-                <strong>${notif.itemName || 'Menu item'}</strong><br>
-                Reason: ${notif.reason}<br>
-                Please upload a new image that meets the guidelines.
-            `;
-            showModal('imageDeclinedModal');
-        }
-    });
-}
+// ==================== VENDOR NOTIFICATIONS LISTENER (for image declines) - REMOVED AUTOMATIC MODAL ====================
+// Instead, we will show decline reason when vendor clicks on the item's warning icon
 
 function fetchApprovedDrivers() {
     db.ref('drivers').orderByChild('status').equalTo('active').on('value', snap => {
@@ -1562,7 +1547,6 @@ function startVendorSync() {
     db.ref('vendors/' + VENDOR_KEY).on('value', snap => { vendorData = snap.val(); if (!vendorData) return; applyVendorUI(); });
     db.ref('vendors/' + VENDOR_KEY + '/menu').on('value', snap => { menuCache = snap.val() || {}; renderMenuGrid(); renderFeaturedItems(); updateDashboardStats(); updateAnalyticsStats(); });
     db.ref('orders').orderByChild('vendorKey').equalTo(VENDOR_KEY).on('value', snap => { ordersCache = snap.val() || {}; renderOrders(); renderRecentOrders(); updateDashboardStats(); updateAnalyticsStats(); });
-    startVendorNotifications(); // Start listening for decline notifications
 }
 
 // ==================== PROFILE CATEGORY TOGGLE ====================
@@ -1794,18 +1778,37 @@ function renderMenuGrid() {
         const statusColors={available:{bg:'var(--accent-light)',color:'var(--accent-dark)',text:'Available'},unavailable:{bg:'#fff5cc',color:'#997300',text:'Unavailable'},sold_out:{bg:'#fff1f0',color:'var(--danger)',text:'Sold Out'}};
         const sc=statusColors[v.status||'available']||statusColors.available;
         const imgApproved = v.imageApproved === true;
+        const isDeclined = v.imageDeclineReason && !imgApproved;
         const imgEl = v.imageURL
             ? (imgApproved
                 ? `<img src="${v.imageURL}" class="menu-item-img" alt="${v.name}" loading="lazy">`
                 : `<div class="menu-item-img-placeholder" style="position:relative;"><i data-lucide="image" style="width:36px;height:36px;opacity:0.3;"></i><div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#fff5cc;border:1px solid #ffe066;color:#997300;border-radius:8px;padding:3px 10px;font-size:0.68rem;font-weight:700;">⏳ Awaiting Approval</div></div>`)
             : `<div class="menu-item-img-placeholder"><i data-lucide="image" style="width:36px;height:36px;"></i></div>`;
         const isFeat=v.featured===true||v.featured==='true';
-        return `<div class="menu-item-card"><div style="position:relative;">${imgEl}<div class="menu-item-actions"><button class="icon-btn icon-btn-edit" onclick="openEditItemModal('${key}')"><i data-lucide="edit-2" style="width:13px;height:13px;"></i></button><button class="icon-btn icon-btn-delete" onclick="openDeleteModal('${key}','${(v.name||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button></div><div class="menu-item-badge"><span style="background:${sc.bg};color:${sc.color};border:1px solid ${sc.color};border-radius:10px;font-size:0.68rem;font-weight:700;padding:3px 8px;">${sc.text}</span>${isFeat?'<span style="background:var(--yellow);color:#5a3e00;border-radius:10px;font-size:0.68rem;font-weight:700;padding:3px 8px;margin-left:4px;">⭐ Featured</span>':''}</div></div><div class="menu-item-body"><div class="menu-item-name">${v.name||'Unnamed Item'}</div><div style="font-size:0.72rem;color:var(--accent-dark);font-weight:600;margin-bottom:4px;">${v.category||''}</div><div class="menu-item-desc">${v.description||''}</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;"><div class="menu-item-price">${fmtCurrency(v.price)}</div>${v.prepTime?`<div style="font-size:0.76rem;color:var(--dim);display:flex;align-items:center;gap:3px;"><i data-lucide="clock" style="width:12px;height:12px;"></i> ${v.prepTime} min</div>`:''}</div>${v.allergens?`<div style="margin-top:6px;font-size:0.72rem;color:var(--dim);"><span style="font-weight:700;">⚠ Allergens:</span> ${v.allergens}</div>`:''}</div></div>`;
+        const declineInfo = isDeclined ? `<div class="img-pending-badge" style="background:#fff1f0;border-color:var(--danger);color:var(--danger);margin-top:6px;cursor:pointer;" onclick="showDeclineReasonModal('${key}')">
+            <i data-lucide="alert-triangle" style="width:12px;height:12px;"></i> Image Declined – Click for reason
+        </div>` : '';
+        return `<div class="menu-item-card"><div style="position:relative;">${imgEl}<div class="menu-item-actions"><button class="icon-btn icon-btn-edit" onclick="openEditItemModal('${key}')"><i data-lucide="edit-2" style="width:13px;height:13px;"></i></button><button class="icon-btn icon-btn-delete" onclick="openDeleteModal('${key}','${(v.name||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button></div><div class="menu-item-badge"><span style="background:${sc.bg};color:${sc.color};border:1px solid ${sc.color};border-radius:10px;font-size:0.68rem;font-weight:700;padding:3px 8px;">${sc.text}</span>${isFeat?'<span style="background:var(--yellow);color:#5a3e00;border-radius:10px;font-size:0.68rem;font-weight:700;padding:3px 8px;margin-left:4px;">⭐ Featured</span>':''}</div></div><div class="menu-item-body"><div class="menu-item-name">${v.name||'Unnamed Item'}</div><div style="font-size:0.72rem;color:var(--accent-dark);font-weight:600;margin-bottom:4px;">${v.category||''}</div><div class="menu-item-desc">${v.description||''}</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;"><div class="menu-item-price">${fmtCurrency(v.price)}</div>${v.prepTime?`<div style="font-size:0.76rem;color:var(--dim);display:flex;align-items:center;gap:3px;"><i data-lucide="clock" style="width:12px;height:12px;"></i> ${v.prepTime} min</div>`:''}</div>${v.allergens?`<div style="margin-top:6px;font-size:0.72rem;color:var(--dim);"><span style="font-weight:700;">⚠ Allergens:</span> ${v.allergens}</div>`:''}${declineInfo}</div></div>`;
     }).join('');
     lucide.createIcons();
 }
 let menuFilter = { search:'', category:'' };
 function filterMenuItems(search) { menuFilter.search=search; menuFilter.category=document.getElementById('menuCatFilter').value; renderMenuGrid(); }
+
+// Show decline reason modal when vendor clicks on the decline badge
+function showDeclineReasonModal(itemKey) {
+    const item = menuCache[itemKey];
+    if (item && item.imageDeclineReason) {
+        document.getElementById('declineReasonDisplay').innerHTML = `
+            <strong>${item.name || 'Item'}</strong><br>
+            Reason: ${item.imageDeclineReason}<br>
+            Please upload a new image that meets the guidelines.
+        `;
+        showModal('imageDeclinedModal');
+    } else {
+        showToast('No decline reason found for this item.', 'info');
+    }
+}
 
 function renderFeaturedItems() {
     const items=Object.entries(menuCache);
@@ -1933,8 +1936,8 @@ function openAssignDriverModal(orderKey) {
     } else {
         driversList.innerHTML = approvedDrivers.map(driver => {
             const initial   = (driver.name || 'D').charAt(0).toUpperCase();
-            const isOnline  = driver.status === 'online';
-            const isBusy    = driver.status === 'busy';
+            const isOnline  = driver.onlineStatus === 'online';
+            const isBusy    = driver.onlineStatus === 'busy';
             const dotStyle  = isOnline
                 ? 'background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,0.2);'
                 : isBusy
@@ -2277,7 +2280,8 @@ function applyDriverUI() {
     const d=driverData;
     document.getElementById('driverChipName').textContent=d.name||'Driver';
     document.getElementById('driverSidebarName').textContent=d.name||'Driver';
-    document.getElementById('driverSidebarStatus').textContent=d.status==='online'?'Online':d.status==='busy'?'On Delivery':'Offline';
+    const onlineStatus = d.onlineStatus || 'offline';
+    document.getElementById('driverSidebarStatus').textContent=onlineStatus==='online'?'Online':onlineStatus==='busy'?'On Delivery':'Offline';
     document.getElementById('driverAvatar').textContent=(d.name||'D')[0].toUpperCase();
     document.getElementById('driverName').value=d.name||'';
     document.getElementById('driverPhone').value=d.phone||'';
@@ -2289,8 +2293,8 @@ function applyDriverUI() {
     document.getElementById('driverProfileName').textContent=d.name||'Driver';
     document.getElementById('driverProfilePhone').textContent=d.phone||'';
     const statusBadge=document.getElementById('driverProfileStatus');
-    if(d.status==='online'){statusBadge.innerHTML='<i data-lucide="circle" style="width:10px;height:10px;"></i> Online';statusBadge.style.background='var(--accent-light)';statusBadge.style.color='var(--accent-dark)';}
-    else if(d.status==='busy'){statusBadge.innerHTML='<i data-lucide="circle" style="width:10px;height:10px;"></i> On Delivery';statusBadge.style.background='#fff5cc';statusBadge.style.color='#997300';}
+    if(onlineStatus==='online'){statusBadge.innerHTML='<i data-lucide="circle" style="width:10px;height:10px;"></i> Online';statusBadge.style.background='var(--accent-light)';statusBadge.style.color='var(--accent-dark)';}
+    else if(onlineStatus==='busy'){statusBadge.innerHTML='<i data-lucide="circle" style="width:10px;height:10px;"></i> On Delivery';statusBadge.style.background='#fff5cc';statusBadge.style.color='#997300';}
     else{statusBadge.innerHTML='<i data-lucide="circle" style="width:10px;height:10px;"></i> Offline';statusBadge.style.background='var(--surface2)';statusBadge.style.color='var(--dim)';}
     lucide.createIcons();
     renderDriverDashboard();
@@ -2354,9 +2358,9 @@ function renderDriverOrders() {
             </div>
         </div>`).join('');
 }
-function updateDriverStatus(status) {
+function updateDriverOnlineStatus(status) {
     if(!DRIVER_KEY)return;
-    db.ref('drivers/'+DRIVER_KEY).update({status,updatedAt:Date.now()}).then(()=>showToast(`You are now ${status}`,'success'));
+    db.ref('drivers/'+DRIVER_KEY).update({onlineStatus:status,updatedAt:Date.now()}).then(()=>showToast(`You are now ${status}`,'success'));
 }
 function saveDriverProfile() {
     const updates={name:document.getElementById('driverName').value,phone:document.getElementById('driverPhone').value,vehicle:document.getElementById('driverVehicle').value,plate:document.getElementById('driverPlate').value,idNumber:document.getElementById('driverId').value,zones:document.getElementById('driverZones').value,updatedAt:Date.now()};
@@ -2395,7 +2399,6 @@ function confirmLogout() {
     setRole('vendor');
     switchVendorTab('login');
     hideModal('logoutConfirmModal');
-    shownDeclineNotifs.clear(); // Clear the decline notifications set on logout
 }
 
 // ==================== SESSION CHECK ====================
