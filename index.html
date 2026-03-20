@@ -390,6 +390,8 @@
             .categories-checkbox-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
             .driver-panel { padding: 20px; }
         }
+        /* extra style for address line */
+        .order-address { margin-top: 8px; font-size: 0.78rem; color: var(--dim); display: flex; align-items: center; gap: 4px; background: #f8f9fa; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -1875,6 +1877,14 @@ function renderOrders() {
                 ${customerPhone?`<span style="font-size:0.72rem;color:var(--dim);font-weight:600;">📞 ${customerPhone}</span>`:''}
             </div>
         </div>`;
+        // ADDRESS DISPLAY (vendor sees full delivery address)
+        const deliveryAddr = o.deliveryAddress || o.address || (o.customer && o.customer.address) || null;
+        const addressHtml = deliveryAddr ? `
+            <div class="order-address">
+                <i data-lucide="map-pin" style="width:14px;height:14px;"></i> 
+                <span>${deliveryAddr}</span>
+            </div>
+        ` : '';
         const driverBanner = o.driverKey
             ? `<div style="margin-top:10px;padding:8px 14px;background:linear-gradient(90deg,var(--accent-light),#f0fdf4);border:1px solid var(--accent);border-radius:10px;display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:700;color:var(--accent-dark);">
                 <i data-lucide="bike" style="width:16px;height:16px;flex-shrink:0;"></i> Assigned to: ${o.driverName||'Driver'}
@@ -1889,6 +1899,7 @@ function renderOrders() {
                     </div>
                     <div style="color:var(--dim);font-size:0.78rem;margin-top:2px;">${fmtDate(o.createdAt)} at ${fmtTime(o.createdAt)}</div>
                     ${customerBar}
+                    ${addressHtml}
                     ${itemsHTML}
                     ${driverBanner}
                 </div>
@@ -2312,7 +2323,9 @@ function renderDriverDashboard() {
     if(currentOrder){
         document.getElementById('currentOrderCard').style.display='block';
         document.getElementById('currentOrderNumber').textContent=`#${currentOrder.orderNumber||'N/A'}`;
-        document.getElementById('currentOrderAddress').textContent=currentOrder.deliveryAddress||'Address not specified';
+        // Show address clearly on driver dashboard
+        const addr = currentOrder.deliveryAddress || currentOrder.address || (currentOrder.customer && currentOrder.customer.address) || 'Address not specified';
+        document.getElementById('currentOrderAddress').textContent=addr;
         document.getElementById('currentOrderAmount').textContent=fmtCurrency(currentOrder.total);
         document.getElementById('currentOrderStatus').textContent=currentOrder.status==='assigned'?'Ready for pickup':'Picked up';
     } else {
@@ -2321,20 +2334,24 @@ function renderDriverDashboard() {
     const recent=Object.values(driverOrdersCache).filter(o=>o.status==='delivered').sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,5);
     const recentEl=document.getElementById('driverRecentOrdersList');
     if(recent.length){
-        recentEl.innerHTML=recent.map(o=>`
+        recentEl.innerHTML=recent.map(o=>{
+            const addr = o.deliveryAddress || o.address || (o.customer && o.customer.address) || 'Address not specified';
+            return `
             <div class="driver-order-item">
                 <div class="driver-order-left">
                     <div class="driver-order-status-dot" style="background:var(--accent);"></div>
                     <div class="driver-order-info">
                         <div class="order-number">#${o.orderNumber||''}</div>
                         <div class="order-meta">${fmtTime(o.updatedAt)} · ${o.items?Object.values(o.items).length:0} items</div>
+                        <div style="font-size:0.7rem;color:var(--dim);display:flex;align-items:center;gap:4px;"><i data-lucide="map-pin" style="width:10px;"></i> ${addr}</div>
                     </div>
                 </div>
                 <div class="driver-order-right">
                     <div class="order-amount">${fmtCurrency(o.total)}</div>
                     <div class="order-status">Delivered</div>
                 </div>
-            </div>`).join('');
+            </div>`;
+        }).join('');
     } else {
         recentEl.innerHTML='<div class="empty-state">No recent deliveries</div>';
     }
@@ -2343,20 +2360,25 @@ function renderDriverOrders() {
     const container=document.getElementById('driverOrdersList');
     const orders=Object.values(driverOrdersCache);
     if(!orders.length){container.innerHTML='<div class="empty-state">No orders assigned</div>';return;}
-    container.innerHTML=orders.map(o=>`
+    container.innerHTML=orders.map(o=>{
+        const addr = o.deliveryAddress || o.address || (o.customer && o.customer.address) || 'Address not specified';
+        return `
         <div class="driver-order-item">
             <div class="driver-order-left">
                 <div class="driver-order-status-dot" style="background:${o.status==='delivered'?'var(--accent)':'var(--warning)'};"></div>
                 <div class="driver-order-info">
                     <div class="order-number">#${o.orderNumber||''}</div>
                     <div class="order-meta">${fmtDate(o.createdAt)} · ${o.items?Object.values(o.items).length:0} items</div>
+                    <div style="font-size:0.7rem;color:var(--dim);display:flex;align-items:center;gap:4px;"><i data-lucide="map-pin" style="width:10px;"></i> ${addr}</div>
                 </div>
             </div>
             <div class="driver-order-right">
                 <div class="order-amount">${fmtCurrency(o.total)}</div>
                 <div class="order-status">${o.status}</div>
             </div>
-        </div>`).join('');
+        </div>`;
+    }).join('');
+    lucide.createIcons();
 }
 function updateDriverOnlineStatus(status) {
     if(!DRIVER_KEY)return;
