@@ -1234,17 +1234,16 @@
     </div>
 </div>
 
-<!-- LOGOUT MODAL -->
-<div class="modal-overlay" id="logoutModal">
-    <div class="modal-content" style="max-width:380px;text-align:center;">
-        <div style="width:64px;height:64px;border-radius:50%;background:#fff1f0;border:2px solid #ffcdc9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-            <i data-lucide="log-out" style="width:28px;height:28px;color:var(--danger);"></i>
+<!-- IMAGE DECLINED NOTIFICATION MODAL (for vendor) -->
+<div class="modal-overlay" id="imageDeclinedModal">
+    <div class="modal-content modal-sm" style="max-width:400px;text-align:center;">
+        <div class="modal-warning-icon" style="width:64px;height:64px;border-radius:50%;background:#fff1f0;border:2px solid #ffcdc9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <i data-lucide="x-circle" style="width:28px;height:28px;color:var(--danger);"></i>
         </div>
-        <h3 style="justify-content:center;">Log Out?</h3>
-        <p style="color:var(--dim);">You will be returned to the login screen.</p>
+        <h3 style="justify-content:center;">Image Declined</h3>
+        <p id="declineReasonDisplay" style="color:var(--dim);margin-bottom:16px;"></p>
         <div class="modal-btn-row">
-            <button class="btn btn-danger" style="flex:1;justify-content:center;padding:14px;" onclick="confirmLogout()"><i data-lucide="log-out" style="width:15px;height:15px;"></i> Log Out</button>
-            <button class="btn btn-edit" style="flex:1;justify-content:center;padding:14px;" onclick="hideModal('logoutModal')">Cancel</button>
+            <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="hideModal('imageDeclinedModal')">OK</button>
         </div>
     </div>
 </div>
@@ -1318,7 +1317,7 @@ let driverOrdersCache = {};
 let manualStoreStatus = null;
 const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
 let inlineSelectedRadius = 5;
-let approvedDrivers = []; // for vendor to assign
+let approvedDrivers = [];
 
 // ==================== AUTH UI ====================
 function setRole(role) {
@@ -1480,7 +1479,7 @@ function enterVendorPortal() {
     document.getElementById('authScreen').classList.add('hidden');
     showShimmer();
     startVendorSync();
-    fetchApprovedDrivers(); // start real-time driver listener
+    fetchApprovedDrivers();
     setTimeout(() => {
         document.getElementById('vendorSidebar').style.display = 'flex';
         document.getElementById('vendorMainPanel').style.display = 'block';
@@ -1504,11 +1503,23 @@ function hideShimmer() {
     setTimeout(() => { sh.style.display = 'none'; sh.classList.remove('fade-out'); }, 600);
 }
 
-// ==================== FETCH APPROVED DRIVERS (for vendor) ====================
-// FIX: Real-time listener (.on instead of .once) so newly approved drivers appear without refresh.
-// FIX: Normalize both driver schemas:
-//   Admin-registered: firstName + lastName, vehicleType, vehicleDesc
-//   Self-registered : name, vehicle, plate
+// ==================== VENDOR NOTIFICATIONS LISTENER (for image declines) ====================
+function startVendorNotifications() {
+    if (!VENDOR_KEY) return;
+    db.ref(`vendors/${VENDOR_KEY}/notifications`).on('child_added', snap => {
+        const notif = snap.val();
+        if (notif && notif.type === 'image_declined' && notif.reason) {
+            // Show popup modal to vendor
+            document.getElementById('declineReasonDisplay').innerHTML = `
+                <strong>${notif.itemName || 'Menu item'}</strong><br>
+                Reason: ${notif.reason}<br>
+                Please upload a new image that meets the guidelines.
+            `;
+            showModal('imageDeclinedModal');
+        }
+    });
+}
+
 function fetchApprovedDrivers() {
     db.ref('drivers').orderByChild('status').equalTo('active').on('value', snap => {
         const data = snap.val();
@@ -1534,6 +1545,7 @@ function startVendorSync() {
     db.ref('vendors/' + VENDOR_KEY).on('value', snap => { vendorData = snap.val(); if (!vendorData) return; applyVendorUI(); });
     db.ref('vendors/' + VENDOR_KEY + '/menu').on('value', snap => { menuCache = snap.val() || {}; renderMenuGrid(); renderFeaturedItems(); updateDashboardStats(); updateAnalyticsStats(); });
     db.ref('orders').orderByChild('vendorKey').equalTo(VENDOR_KEY).on('value', snap => { ordersCache = snap.val() || {}; renderOrders(); renderRecentOrders(); updateDashboardStats(); updateAnalyticsStats(); });
+    startVendorNotifications(); // Start listening for decline notifications
 }
 
 // ==================== PROFILE CATEGORY TOGGLE ====================
@@ -1843,7 +1855,6 @@ function renderOrders() {
                 ${customerPhone?`<span style="font-size:0.72rem;color:var(--dim);font-weight:600;">📞 ${customerPhone}</span>`:''}
             </div>
         </div>`;
-        // Show assigned driver banner when driver is assigned
         const driverBanner = o.driverKey
             ? `<div style="margin-top:10px;padding:8px 14px;background:linear-gradient(90deg,var(--accent-light),#f0fdf4);border:1px solid var(--accent);border-radius:10px;display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:700;color:var(--accent-dark);">
                 <i data-lucide="bike" style="width:16px;height:16px;flex-shrink:0;"></i> Assigned to: ${o.driverName||'Driver'}
@@ -1891,8 +1902,6 @@ function updateOrderStatus(key,newStatus) {
 }
 
 // ==================== ASSIGN DRIVER MODAL ====================
-// FIX: Uses normalized driver fields (name, vehicle, plate, phone) that work for
-// both admin-registered (firstName/lastName/vehicleType) and self-registered drivers.
 function openAssignDriverModal(orderKey) {
     document.getElementById('assign-order-key').value = orderKey;
     const driversList = document.getElementById('driversList');
@@ -2386,7 +2395,7 @@ function hideModal(id) {
 }
 window.onclick=e=>{
     if(e.target.classList.contains('modal-overlay'))
-        ['itemModal','deleteModal','deleteOrderModal','assignDriverModal','logoutModal'].forEach(id=>{const el=document.getElementById(id);if(el&&el===e.target)hideModal(id);});
+        ['itemModal','deleteModal','deleteOrderModal','assignDriverModal','logoutModal','imageDeclinedModal'].forEach(id=>{const el=document.getElementById(id);if(el&&el===e.target)hideModal(id);});
 };
 
 // ==================== SIDEBAR HOVER ====================
