@@ -1943,7 +1943,7 @@ function openAssignDriverModal(orderKey) {
                 : isBusy
                     ? 'background:var(--warning);box-shadow:0 0 0 3px rgba(255,149,0,0.2);'
                     : 'background:#cbd5e1;';
-            const statusLbl = isOnline ? 'Online' : isBusy ? 'On Delivery' : 'Offline';
+            const statusLbl = isOnline ? 'Online' : isBusy ? 'On Delivery' : 'Active';
             const statusClr = isOnline ? 'var(--accent-dark)' : isBusy ? 'var(--warning)' : 'var(--dim)';
             const vEmoji    = driver.vehicle === 'bicycle' ? '🚲' : driver.vehicle === 'car' ? '🚗' : '🛵';
             const safeName  = (driver.name || '').replace(/'/g, "\\'");
