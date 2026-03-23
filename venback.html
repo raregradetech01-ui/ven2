@@ -1,0 +1,2481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vynix Eats | Vendor & Driver Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        /* ==================== ALL STYLES REMAIN UNCHANGED ==================== */
+        :root {
+            --bg: #f4f7f6;
+            --surface: #ffffff;
+            --surface2: #f1f3f5;
+            --border: #e9ecef;
+            --text: #1a1d23;
+            --dim: #6c757d;
+            --accent: #06C167;
+            --accent-dark: #05a357;
+            --accent-light: #e6f9ed;
+            --danger: #ff3b30;
+            --warning: #ff9500;
+            --yellow: #ffc107;
+            --purple: #5856d6;
+            --sidebar-width: 280px;
+            --sidebar-collapsed: 72px;
+            --radius: 20px;
+            --shadow: 0 4px 16px rgba(0,0,0,0.05);
+            --shadow-hover: 0 8px 28px rgba(0,0,0,0.10);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--dim); }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="number"],
+        input[type="password"], input[type="url"], input[type="time"], input[type="file"],
+        select, textarea { border-radius: 999px !important; }
+        textarea { border-radius: 20px !important; }
+
+        /* === AUTH SCREEN === */
+        #authScreen {
+            position: fixed; inset: 0; z-index: 8000;
+            background: linear-gradient(135deg, #0d1f14 0%, #0a2e1a 50%, #0d1f14 100%);
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        #authScreen.hidden { display: none; }
+        .auth-bg-circles { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+        .auth-circle { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(6,193,103,0.15) 0%, transparent 70%); }
+        .auth-circle:nth-child(1) { width: 600px; height: 600px; top: -200px; right: -100px; }
+        .auth-circle:nth-child(2) { width: 400px; height: 400px; bottom: -100px; left: -50px; }
+        .auth-circle:nth-child(3) { width: 300px; height: 300px; top: 40%; left: 40%; }
+        .auth-card {
+            background: rgba(255,255,255,0.04); backdrop-filter: blur(20px);
+            border: 1px solid rgba(6,193,103,0.2); border-radius: 28px; padding: 44px 40px;
+            width: 100%; max-width: 500px; position: relative; z-index: 1;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+        }
+        .auth-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; justify-content: center; }
+        .auth-logo-icon { color: var(--accent); width: 32px; height: 32px; }
+        .auth-logo-text { font-size: 1.6rem; font-weight: 800; color: white; letter-spacing: -1px; }
+        .auth-logo-text span { color: var(--accent); }
+        .role-selector { display: flex; background: rgba(255,255,255,0.06); border-radius: 999px; padding: 4px; margin-bottom: 28px; gap: 4px; }
+        .role-btn { flex: 1; padding: 10px; border-radius: 999px; border: none; background: transparent; color: rgba(255,255,255,0.5); font-family: inherit; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: var(--transition); }
+        .role-btn.active { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(6,193,103,0.4); }
+        .auth-tabs { display: flex; background: rgba(255,255,255,0.06); border-radius: 999px; padding: 4px; margin-bottom: 18px; gap: 4px; }
+        .auth-tab { flex: 1; padding: 8px; border-radius: 999px; border: none; background: transparent; color: rgba(255,255,255,0.5); font-family: inherit; font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: var(--transition); }
+        .auth-tab.active { background: var(--accent); color: white; }
+        .auth-panel { display: block; }
+        .auth-panel.hidden { display: none; }
+        .auth-title { font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 4px; text-align: center; }
+        .auth-sub { color: rgba(255,255,255,0.5); font-size: 0.82rem; text-align: center; margin-bottom: 20px; }
+        .auth-form { display: flex; flex-direction: column; gap: 14px; }
+        .auth-form-group { display: flex; flex-direction: column; gap: 6px; }
+        .auth-form-group label { font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; }
+        .auth-input { padding: 12px 18px !important; background: rgba(255,255,255,0.07) !important; border: 1.5px solid rgba(255,255,255,0.1) !important; border-radius: 999px !important; color: black !important; font-family: inherit; font-size: 0.9rem; outline: none; transition: var(--transition); width: 100%; }
+        .auth-input::placeholder { color: rgba(255,255,255,0.3); }
+        .auth-input:focus { border-color: var(--accent) !important; background: rgba(6,193,103,0.08) !important; box-shadow: 0 0 0 3px rgba(6,193,103,0.15) !important; }
+        #drv-reg-vehicle { color: black !important; background: white !important; }
+        .auth-btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 999px; font-weight: 700; font-family: inherit; font-size: 0.9rem; cursor: pointer; transition: var(--transition); margin-top: 6px; box-shadow: 0 6px 20px rgba(6,193,103,0.4); }
+        .auth-btn:hover { background: var(--accent-dark); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(6,193,103,0.5); }
+        .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .auth-divider { display: flex; align-items: center; gap: 12px; margin: 8px 0; color: rgba(255,255,255,0.25); font-size: 0.8rem; }
+        .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+        .auth-error { background: rgba(255,59,48,0.15); border: 1px solid rgba(255,59,48,0.3); border-radius: 12px; padding: 10px 14px; color: #ff6b63; font-size: 0.82rem; font-weight: 600; display: none; margin-bottom: 12px; }
+        .auth-success { background: rgba(6,193,103,0.15); border: 1px solid rgba(6,193,103,0.3); border-radius: 12px; padding: 10px 14px; color: var(--accent); font-size: 0.82rem; font-weight: 600; display: none; margin-bottom: 12px; }
+        .auth-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .reg-step { display: none; }
+        .reg-step.active { display: flex; flex-direction: column; gap: 14px; }
+        .step-indicator { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; }
+        .step-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.45); border: 1.5px solid rgba(255,255,255,0.6); transition: var(--transition); }
+        .step-dot.active { background: var(--accent); border-color: var(--accent); width: 24px; border-radius: 4px; box-shadow: 0 0 0 3px rgba(6,193,103,0.3); }
+        .step-dot.done { background: var(--accent); border-color: var(--accent); }
+        #vendorRegisterPanel { max-height: 82vh; overflow-y: auto; padding-right: 8px; scrollbar-width: thin; scrollbar-color: rgba(6,193,103,0.5) rgba(255,255,255,0.06); }
+        #vendorRegisterPanel::-webkit-scrollbar { width: 5px; }
+        #vendorRegisterPanel::-webkit-scrollbar-track { background: rgba(255,255,255,0.06); border-radius: 10px; }
+        #vendorRegisterPanel::-webkit-scrollbar-thumb { background: rgba(6,193,103,0.5); border-radius: 10px; }
+
+        /* SHIMMER */
+        #shimmerOverlay { position: fixed; inset: 0; z-index: 9999; background: var(--bg); display: flex; flex-direction: column; pointer-events: all; transition: opacity .55s ease; }
+        #shimmerOverlay.fade-out { opacity: 0; pointer-events: none; }
+        .shim-sidebar { position: absolute; left: 0; top: 0; width: var(--sidebar-collapsed); height: 100%; background: white; border-right: 1px solid var(--border); padding: 24px 12px; display: flex; flex-direction: column; gap: 18px; }
+        .shim-main { margin-left: var(--sidebar-collapsed); flex: 1; padding: 40px; display: flex; flex-direction: column; gap: 28px; }
+        .shim-block { border-radius: 20px; background: linear-gradient(90deg, #e8eaed 25%, #f4f5f7 50%, #e8eaed 75%); background-size: 400% 100%; animation: shimmerSlide 1.5s ease-in-out infinite; }
+        @keyframes shimmerSlide { 0%{background-position:100% 0;} 100%{background-position:-100% 0;} }
+        .shim-header { height: 44px; width: 260px; border-radius: 999px; }
+        .shim-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+        .shim-stat { height: 110px; border-radius: 20px; }
+        .shim-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .shim-card { height: 200px; border-radius: 20px; }
+        .shim-table { height: 320px; border-radius: 20px; }
+        .shim-logo { width: 42px; height: 42px; border-radius: 14px; }
+        .shim-nav { height: 36px; border-radius: 999px; width: 42px; }
+
+        /* SIDEBAR */
+        .sidebar { width: var(--sidebar-collapsed); background: var(--surface); border-right: 1px solid var(--border); padding: 24px 12px; position: fixed; height: 100vh; z-index: 100; display: flex; flex-direction: column; transition: width 0.35s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
+        .sidebar.expanded { width: var(--sidebar-width); padding: 30px 20px; }
+        .nav-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
+        .logo { font-weight: 800; font-size: 1.5rem; margin-bottom: 36px; color: var(--text); letter-spacing: -1px; display: flex; align-items: center; gap: 12px; white-space: nowrap; overflow: hidden; }
+        .logo .logo-icon { flex-shrink: 0; width: 28px; height: 28px; color: var(--accent); }
+        .logo .logo-text { opacity: 0; transform: translateX(-10px); transition: opacity 0.25s ease, transform 0.25s ease; }
+        .sidebar.expanded .logo .logo-text { opacity: 1; transform: translateX(0); }
+        .logo-text span { color: var(--accent); }
+        .vendor-chip { background: var(--accent-light); border: 1px solid var(--accent); border-radius: 12px; padding: 10px 12px; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; overflow: hidden; white-space: nowrap; opacity: 0; transform: translateX(-8px); transition: opacity 0.25s ease 0.05s, transform 0.25s ease 0.05s; }
+        .sidebar.expanded .vendor-chip { opacity: 1; transform: translateX(0); }
+        .vendor-chip-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex-shrink: 0; box-shadow: 0 0 0 3px rgba(6,193,103,0.2); }
+        .nav-section { margin-bottom: 24px; }
+        .nav-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin-bottom: 10px; padding-left: 12px; font-weight: 700; white-space: nowrap; opacity: 0; transition: opacity 0.2s ease; }
+        .sidebar.expanded .nav-label { opacity: 1; }
+        .nav-item { padding: 13px 12px; margin-bottom: 4px; border-radius: 14px; cursor: pointer; transition: var(--transition); font-weight: 600; display: flex; align-items: center; gap: 12px; color: var(--dim); white-space: nowrap; position: relative; }
+        .nav-item:hover { background: var(--surface2); color: var(--text); }
+        .nav-item.active { background: var(--accent); color: white; }
+        .nav-icon { flex-shrink: 0; width: 20px; height: 20px; }
+        .nav-text { opacity: 0; transform: translateX(-8px); transition: opacity 0.2s ease, transform 0.2s ease; }
+        .sidebar.expanded .nav-text { opacity: 1; transform: translateX(0); }
+        .logout-btn { padding: 13px 12px; margin-top: 8px; border-radius: 14px; cursor: pointer; transition: var(--transition); font-weight: 600; display: flex; align-items: center; gap: 12px; color: var(--danger); white-space: nowrap; border: none; background: transparent; font-family: inherit; font-size: inherit; width: 100%; }
+        .logout-btn:hover { background: #fff1f0; }
+        .user-profile { padding: 10px; background: var(--bg); border-radius: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: var(--transition); border: 1px solid transparent; overflow: hidden; white-space: nowrap; }
+        .user-profile:hover { border-color: var(--border); }
+        .user-avatar { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; background: linear-gradient(135deg, var(--accent), #05a357); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.85rem; }
+        .user-info { opacity: 0; transform: translateX(-8px); transition: opacity 0.2s ease, transform 0.2s ease; }
+        .sidebar.expanded .user-info { opacity: 1; transform: translateX(0); }
+
+        /* VENDOR MAIN */
+        .main-panel { margin-left: var(--sidebar-collapsed); flex: 1; padding: 36px; max-width: calc(100% - var(--sidebar-collapsed)); transition: margin-left 0.35s cubic-bezier(0.4,0,0.2,1), max-width 0.35s cubic-bezier(0.4,0,0.2,1); }
+        .main-panel.shifted { margin-left: var(--sidebar-width); max-width: calc(100% - var(--sidebar-width)); }
+
+        /* DRIVER SIDEBAR */
+        .driver-sidebar { width: var(--sidebar-collapsed); background: #1a2a22; border-right: 1px solid #2d3f33; padding: 24px 12px; position: fixed; height: 100vh; z-index: 100; display: flex; flex-direction: column; transition: width 0.35s cubic-bezier(0.4,0,0.2,1); overflow: hidden; color: white; }
+        .driver-sidebar.expanded { width: var(--sidebar-width); padding: 30px 20px; background: #14251c; }
+        .driver-sidebar .logo-text { color: white; }
+        .driver-sidebar .nav-item { color: rgba(255,255,255,0.7); }
+        .driver-sidebar .nav-item:hover { background: #2d4a37; color: white; }
+        .driver-sidebar .nav-item.active { background: var(--accent); color: white; }
+        .driver-sidebar .user-profile { background: #1e3327; border-color: #2d4a37; }
+        .driver-sidebar .user-profile:hover { border-color: var(--accent); }
+        .driver-panel { margin-left: var(--sidebar-collapsed); flex: 1; padding: 36px; max-width: calc(100% - var(--sidebar-collapsed)); transition: margin-left 0.35s cubic-bezier(0.4,0,0.2,1), max-width 0.35s cubic-bezier(0.4,0,0.2,1); background: var(--bg); }
+        .driver-panel.shifted { margin-left: var(--sidebar-width); max-width: calc(100% - var(--sidebar-width)); }
+        .driver-content { display: none; animation: fadeIn 0.35s ease-out; }
+        .driver-content.active { display: block; }
+        .driver-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 28px; }
+        .driver-stat-card { background: white; padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); transition: var(--transition); }
+        .driver-stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+        .driver-stat-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+        .driver-stat-icon i { width: 22px; height: 22px; color: var(--accent-dark); }
+        .driver-stat-label { font-size: 0.7rem; text-transform: uppercase; color: var(--dim); font-weight: 700; letter-spacing: 0.5px; }
+        .driver-stat-value { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1.2; }
+        .driver-profile-section { background: white; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); padding: 28px; margin-bottom: 20px; }
+        .driver-profile-header { display: flex; align-items: center; gap: 20px; margin-bottom: 24px; }
+        .driver-profile-avatar { width: 70px; height: 70px; border-radius: 18px; background: linear-gradient(135deg, var(--accent), #05a357); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.8rem; flex-shrink: 0; }
+        .driver-profile-title { font-weight: 800; font-size: 1.2rem; margin-bottom: 4px; }
+        .driver-profile-sub { font-size: 0.85rem; color: var(--dim); }
+        .driver-profile-status-badge { padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 700; background: var(--accent-light); color: var(--accent-dark); display: inline-flex; align-items: center; gap: 4px; }
+        .driver-profile-section .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .driver-profile-section .form-group { margin-bottom: 16px; }
+        .driver-profile-section label { font-size: 0.75rem; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
+        .driver-profile-section input, .driver-profile-section select { width: 100%; padding: 12px 18px; border: 1.5px solid var(--border); border-radius: 999px !important; font-family: inherit; font-size: 0.9rem; outline: none; transition: var(--transition); background: var(--bg); color: var(--text); }
+        .driver-profile-section input:focus, .driver-profile-section select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.12); background: white; }
+        .current-order-card { background: linear-gradient(135deg, #ffffff, #f8fbf9); border: 2px solid var(--accent); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow); }
+        .current-order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .current-order-header h3 { font-weight: 800; font-size: 1.1rem; }
+        .order-eta-badge { background: var(--accent-light); color: var(--accent-dark); padding: 6px 14px; border-radius: 100px; font-weight: 700; font-size: 0.8rem; }
+        .driver-orders-list { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+        .driver-order-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); transition: var(--transition); }
+        .driver-order-item:hover { background: #fafcfa; }
+        .driver-order-item:last-child { border-bottom: none; }
+        .driver-order-left { display: flex; gap: 16px; align-items: center; }
+        .driver-order-status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.2); }
+        .driver-order-info .order-number { font-weight: 800; font-size: 0.9rem; margin-bottom: 2px; }
+        .driver-order-info .order-meta { font-size: 0.78rem; color: var(--dim); display: flex; gap: 6px; }
+        .driver-order-right { text-align: right; }
+        .driver-order-right .order-amount { font-weight: 800; color: var(--accent); }
+        .driver-order-right .order-status { font-size: 0.72rem; background: var(--surface2); padding: 2px 8px; border-radius: 100px; }
+
+        /* PAGE STYLES */
+        .page-content { display: none; animation: fadeIn 0.35s ease-out; }
+        .page-content.active { display: block; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+        .page-header h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.5px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 32px; }
+        .stat-card { background: white; padding: 24px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); transition: var(--transition); position: relative; overflow: hidden; }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+        .stat-card::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--accent), transparent); opacity: 0; transition: opacity 0.3s; }
+        .stat-card:hover::after { opacity: 1; }
+        .stat-card h3 { font-size: 0.72rem; text-transform: uppercase; color: var(--dim); letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; font-weight: 700; }
+        .stat-card p { font-size: 2.1rem; font-weight: 800; }
+        .stat-icon { position: absolute; right: 18px; top: 18px; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+        .content-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+        .card-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .card-header h2 { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .search-bar { padding: 11px 18px; border: 1.5px solid var(--border); border-radius: 999px !important; font-family: inherit; font-size: 0.9rem; outline: none; transition: var(--transition); background: var(--bg); color: var(--text); width: 280px; }
+        .search-bar:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.12); background: white; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 16px 20px; background: #fafafa; color: var(--dim); font-size: 0.72rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
+        td { padding: 16px 20px; border-top: 1px solid var(--border); font-size: 0.9rem; vertical-align: middle; transition: background 0.2s; }
+        tr:hover td { background: #fafcfa; }
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+        .badge-open { background: var(--accent-light); color: var(--accent-dark); border: 1px solid var(--accent); }
+        .badge-pending { background: #fff5cc; color: #997300; border: 1px solid #ffe066; }
+        .badge-disabled{ background: #fff1f0; color: var(--danger); border: 1px solid var(--danger); }
+        .badge-active { background: var(--accent-light); color: var(--accent-dark); border: 1px solid var(--accent); }
+        .badge-closed { background: #fff1f0; color: var(--danger); border: 1px solid var(--danger); }
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 12px 22px; border-radius: 999px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: var(--transition); box-shadow: 0 4px 14px rgba(6,193,103,0.35); font-family: inherit; font-size: 0.9rem; }
+        .btn-primary:hover { background: var(--accent-dark); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(6,193,103,0.45); }
+        .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn { padding: 7px 16px; border-radius: 999px; border: none; cursor: pointer; font-weight: 600; transition: var(--transition); font-size: 0.8rem; display: flex; align-items: center; gap: 5px; font-family: inherit; white-space: nowrap; }
+        .btn-edit { background: var(--surface2); color: var(--text); }
+        .btn-edit:hover { background: var(--border); transform: translateY(-1px); }
+        .btn-danger { background: #fff1f0; color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; transform: translateY(-1px); }
+        .btn-success { background: var(--accent-light); color: var(--accent-dark); }
+        .btn-success:hover { background: var(--accent); color: white; transform: translateY(-1px); }
+
+        /* MODALS */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.45); backdrop-filter: blur(12px); z-index: 2000; justify-content: center; align-items: center; opacity: 0; transition: opacity .3s ease; }
+        .modal-overlay.active { opacity: 1; }
+        .modal-content { background: white; padding: 32px; border-radius: 24px; width: 560px; max-width: 95vw; box-shadow: 0 32px 64px rgba(0,0,0,0.18); transform: scale(0.9) translateY(20px); transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); max-height: 90vh; overflow-y: auto; }
+        .modal-overlay.active .modal-content { transform: scale(1) translateY(0); }
+        .modal-content h3 { margin-bottom: 22px; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; font-weight: 800; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.4px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .modal-content input, .modal-content select, .modal-content textarea { width: 100%; padding: 12px 18px; border: 1.5px solid var(--border); border-radius: 999px !important; font-size: 0.92rem; outline: none; transition: var(--transition); font-family: inherit; background: var(--bg); color: var(--text); }
+        .modal-content textarea { border-radius: 16px !important; }
+        .modal-content input:focus, .modal-content select:focus, .modal-content textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.12); background: white; }
+        .modal-btn-row { display: flex; gap: 10px; margin-top: 20px; }
+
+        /* MENU */
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; padding: 20px; }
+        .menu-item-card { background: var(--bg); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: var(--transition); position: relative; }
+        .menu-item-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: var(--accent); }
+        .menu-item-img { width: 100%; height: 150px; object-fit: cover; background: var(--surface2); }
+        .menu-item-img-placeholder { width: 100%; height: 150px; background: linear-gradient(135deg, var(--accent-light), var(--bg)); display: flex; align-items: center; justify-content: center; color: var(--accent); }
+        .menu-item-body { padding: 14px; }
+        .menu-item-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+        .menu-item-desc { color: var(--dim); font-size: 0.82rem; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .menu-item-price { font-weight: 800; font-size: 1.05rem; color: var(--accent); }
+        .menu-item-badge { position: absolute; top: 10px; right: 10px; }
+        .menu-item-actions { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; opacity: 0; transition: var(--transition); }
+        .menu-item-card:hover .menu-item-actions { opacity: 1; }
+        .icon-btn { width: 32px; height: 32px; border-radius: 10px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
+        .icon-btn-edit { background: white; color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .icon-btn-edit:hover { background: var(--text); color: white; }
+        .icon-btn-delete { background: white; color: var(--danger); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .icon-btn-delete:hover { background: var(--danger); color: white; }
+
+        /* PROFILE */
+        .profile-section { background: white; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); padding: 28px; margin-bottom: 20px; }
+        .profile-section h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; }
+        .profile-section h3 i { color: var(--accent); }
+        .profile-section input, .profile-section select { width: 100%; padding: 12px 18px; border: 1.5px solid var(--border); border-radius: 999px !important; font-size: 0.92rem; outline: none; transition: var(--transition); font-family: inherit; background: var(--bg); color: var(--text); }
+        .profile-section input:focus, .profile-section select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.12); background: white; }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 20px; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.6rem; flex-shrink: 0; overflow: hidden; }
+        .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ORDERS */
+        .order-card { padding: 20px 24px; border-bottom: 1px solid var(--border); transition: var(--transition); }
+        .order-card:hover { background: #fafcfa; }
+        .order-card:last-child { border-bottom: none; }
+
+        /* ORDER ITEM THUMBNAILS */
+        .order-items-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; padding: 10px; background: var(--bg); border-radius: 12px; }
+        .order-item-chip { display: flex; align-items: center; gap: 6px; background: white; border: 1px solid var(--border); border-radius: 10px; padding: 5px 10px 5px 5px; }
+        .order-item-chip-img { width: 36px; height: 36px; border-radius: 7px; object-fit: cover; flex-shrink: 0; background: var(--accent-light); }
+        .order-item-chip-placeholder { width: 36px; height: 36px; border-radius: 7px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+        .order-item-chip-info { display: flex; flex-direction: column; }
+        .order-item-chip-name { font-size: 0.78rem; font-weight: 700; color: var(--text); white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+        .order-item-chip-qty { font-size: 0.68rem; color: var(--dim); font-weight: 600; }
+
+        /* ORDER CUSTOMER ROW */
+        .order-customer-bar { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 8px 12px; background: linear-gradient(90deg,#f0fdf4,var(--bg)); border-radius: 10px; border: 1px solid var(--border); }
+        .order-customer-avatar { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg,var(--purple),#8b5cf6); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 0.75rem; flex-shrink: 0; }
+        .order-customer-details { display: flex; flex-direction: column; gap: 1px; }
+        .order-customer-name { font-weight: 700; font-size: 0.86rem; color: var(--text); }
+        .order-customer-id { font-size: 0.72rem; color: var(--dim); font-weight: 600; }
+
+        /* IMAGE PENDING APPROVAL BADGE */
+        .img-pending-badge { background: #fff5cc; border: 1px solid #ffe066; color: #997300; border-radius: 8px; padding: 4px 10px; font-size: 0.68rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; }
+
+        /* FEATURED */
+        .featured-banner { background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%); border: 1px solid var(--yellow); border-radius: 16px; padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+        .empty-state { text-align: center; padding: 56px 24px; color: var(--dim); }
+        .empty-state svg { opacity: 0.4; margin-bottom: 14px; }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: white; padding: 15px 22px; border-radius: 999px; box-shadow: var(--shadow-hover); display: flex; align-items: center; gap: 12px; transform: translateY(100px); opacity: 0; transition: all 0.4s cubic-bezier(0.4,0,0.2,1); z-index: 3000; font-size: 0.9rem; font-weight: 600; max-width: 360px; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-left: 4px solid var(--accent); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.info { border-left: 4px solid var(--purple); }
+
+        /* TOGGLE */
+        .toggle { width: 48px; height: 26px; background: var(--border); border-radius: 13px; position: relative; cursor: pointer; transition: background .3s; flex-shrink: 0; }
+        .toggle.on { background: var(--accent); }
+        .toggle::after { content: ''; position: absolute; width: 22px; height: 22px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: transform .3s cubic-bezier(.4,0,.2,1); box-shadow: 0 2px 4px rgba(0,0,0,.2); }
+        .toggle.on::after { transform: translateX(22px); }
+
+        /* CHART */
+        .chart-container { padding: 20px; height: 220px; display: flex; align-items: flex-end; justify-content: space-around; gap: 10px; overflow: hidden; }
+        .bar-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; max-width: 60px; }
+        .bar { width: 100%; max-width: 44px; background: linear-gradient(to top, var(--accent), #34d672); border-radius: 6px 6px 0 0; transition: height 1s cubic-bezier(.4,0,.2,1); position: relative; cursor: default; min-height: 4px; opacity: 0.85; }
+        .bar:hover { opacity: 1; }
+        .bar-label { font-size: 0.7rem; color: var(--dim); font-weight: 600; text-align: center; }
+        .bar-val { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-weight: 700; font-size: 0.75rem; opacity: 0; transition: opacity .2s; white-space: nowrap; color: var(--text); }
+        .bar:hover .bar-val { opacity: 1; }
+
+        /* SETTINGS */
+        .settings-row { display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);gap:12px; }
+        .settings-row:last-child { border-bottom:none; }
+        #settings .form-group input, #settings .form-group select { border-radius: 999px !important; padding: 12px 18px; border: 1.5px solid var(--border); font-family: inherit; font-size: 0.92rem; outline: none; transition: var(--transition); background: var(--bg); color: var(--text); }
+        #settings .form-group input:focus, #settings .form-group select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.12); background: white; }
+
+        .day-label { display:flex;align-items:center;gap:5px;font-size:0.83rem;font-weight:600;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:7px 16px;cursor:pointer;transition:var(--transition); }
+        .day-label.checked { background:var(--accent);border-color:var(--accent);color:white; }
+        .day-label input[type=checkbox] { display:none; }
+
+        /* STORE STATUS */
+        .store-status-toggle { display: flex; gap: 10px; margin-left: auto; }
+        .status-btn { padding: 8px 16px; border-radius: 999px; border: 2px solid var(--border); background: white; font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 5px; }
+        .status-btn.open { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); }
+        .status-btn.closed { background: #fff1f0; border-color: var(--danger); color: var(--danger); }
+
+        /* SHOP CATEGORIES */
+        .categories-checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 10px; }
+        .category-check-label { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px; cursor: pointer; transition: var(--transition); font-size: 0.88rem; font-weight: 600; user-select: none; }
+        .category-check-label:hover { border-color: var(--accent); background: var(--accent-light); }
+        .category-check-label.checked { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); }
+        .category-check-label input[type="checkbox"] { display: none; }
+
+        /* INLINE LOCATION PICKER */
+        .inline-location-picker { display: none; margin-top: 16px; background: var(--bg); border: 1.5px solid var(--accent); border-radius: 20px; padding: 20px; animation: fadeIn 0.25s ease; }
+        .inline-location-picker.open { display: block; }
+        .inline-location-picker .picker-title { font-size: 0.82rem; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+        .location-search-input { width: 100%; padding: 13px 18px !important; border: 1.5px solid var(--border) !important; border-radius: 999px !important; font-family: inherit; font-size: 0.92rem; outline: none; transition: var(--transition); background: white !important; color: var(--text) !important; margin-bottom: 12px; }
+        .location-search-input:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(6,193,103,0.12) !important; }
+        .use-location-btn { width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 999px; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 14px; transition: var(--transition); font-family: inherit; }
+        .use-location-btn:hover { background: var(--accent-dark); transform: translateY(-1px); }
+        .picker-radius-label { font-size: 0.78rem; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 8px; }
+        .picker-radius-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+        .picker-radius-opt { padding: 10px; border: 1.5px solid var(--border); border-radius: 12px; background: white; font-weight: 600; font-size: 0.82rem; cursor: pointer; text-align: center; transition: var(--transition); }
+        .picker-radius-opt:hover { border-color: var(--accent); }
+        .picker-radius-opt.selected { border-color: var(--accent); background: var(--accent-light); color: var(--accent-dark); }
+        .picker-suggestions { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; }
+        .picker-suggestion-item { padding: 12px 14px; background: white; border: 1px solid var(--border); border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: var(--transition); font-size: 0.86rem; font-weight: 500; }
+        .picker-suggestion-item:hover { border-color: var(--accent); background: var(--accent-light); }
+        .picker-suggestion-item i { color: var(--accent); flex-shrink: 0; }
+        .picker-close-btn { float: right; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 0.76rem; font-weight: 700; cursor: pointer; color: var(--dim); transition: var(--transition); margin-bottom: 10px; }
+        .picker-close-btn:hover { background: var(--danger); color: white; border-color: var(--danger); }
+
+        @keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+
+        @media (max-width: 768px) {
+            .main-panel { padding: 20px; }
+            .form-row { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .auth-form-row { grid-template-columns: 1fr; }
+            .categories-checkbox-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+            .driver-panel { padding: 20px; }
+        }
+        /* extra style for address line */
+        .order-address { margin-top: 8px; font-size: 0.78rem; color: var(--dim); display: flex; align-items: center; gap: 4px; background: #f8f9fa; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--border); }
+    </style>
+</head>
+<body>
+
+<!-- AUTH SCREEN -->
+<div id="authScreen">
+    <div class="auth-bg-circles">
+        <div class="auth-circle"></div>
+        <div class="auth-circle"></div>
+        <div class="auth-circle"></div>
+    </div>
+    <div class="auth-card">
+        <div class="auth-logo">
+            <i data-lucide="utensils" class="auth-logo-icon"></i>
+            <div class="auth-logo-text">VYNIX<span>EATS</span></div>
+        </div>
+        <div class="role-selector">
+            <button class="role-btn active" onclick="setRole('vendor')">🍽️ Vendor</button>
+            <button class="role-btn" onclick="setRole('driver')">🛵 Driver</button>
+        </div>
+
+        <!-- VENDOR AUTH -->
+        <div id="vendorAuthPanel" class="auth-panel">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchVendorTab('login')">Sign In</button>
+                <button class="auth-tab" onclick="switchVendorTab('register')">Register</button>
+            </div>
+            <div id="vendorLoginPanel">
+                <div class="auth-title">Welcome Back 👋</div>
+                <div class="auth-sub">Sign in with your Vendor ID</div>
+                <div class="auth-error" id="vendorLoginError"></div>
+                <div class="auth-form">
+                    <div class="auth-form-group">
+                        <label>Vendor ID</label>
+                        <input type="text" class="auth-input" id="vendorLoginId" placeholder="e.g. VYX-00123">
+                    </div>
+                    <button class="auth-btn" onclick="vendorLogin()" id="vendorLoginBtn">Sign In to Portal</button>
+                </div>
+                <div class="auth-divider">New restaurant?</div>
+                <button class="auth-btn" style="background:transparent;border:1.5px solid rgba(6,193,103,0.4);color:var(--accent);" onclick="switchVendorTab('register')">Register Your Restaurant</button>
+            </div>
+            <div id="vendorRegisterPanel" style="display:none;">
+                <div class="step-indicator" id="vendorStepIndicator">
+                    <div class="step-dot active" id="vdot-0"></div>
+                    <div class="step-dot" id="vdot-1"></div>
+                    <div class="step-dot" id="vdot-2"></div>
+                </div>
+                <div class="auth-error" id="vendorRegError"></div>
+                <div class="auth-success" id="vendorRegSuccess"></div>
+                <div class="reg-step active" id="vendorStep0">
+                    <div class="auth-title">Restaurant Details</div>
+                    <div class="auth-sub">Tell us about your business</div>
+                    <div class="auth-form-group">
+                        <label>Restaurant Name *</label>
+                        <input type="text" class="auth-input" id="reg-name" placeholder="e.g. Pizza Palace">
+                    </div>
+                    <div class="auth-form-row">
+                        <div class="auth-form-group">
+                            <label>City *</label>
+                            <input type="text" class="auth-input" id="reg-city" placeholder="e.g. Johannesburg">
+                        </div>
+                        <div class="auth-form-group">
+                            <label>Province *</label>
+                            <select class="auth-input" id="reg-province">
+                                <option value="">Province…</option>
+                                <option value="Gauteng">Gauteng</option>
+                                <option value="Western Cape">Western Cape</option>
+                                <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                                <option value="Eastern Cape">Eastern Cape</option>
+                                <option value="Limpopo">Limpopo</option>
+                                <option value="Mpumalanga">Mpumalanga</option>
+                                <option value="North West">North West</option>
+                                <option value="Free State">Free State</option>
+                                <option value="Northern Cape">Northern Cape</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="auth-btn" onclick="vendorNext(0)">Next →</button>
+                </div>
+                <div class="reg-step" id="vendorStep1">
+                    <div class="auth-title">Contact Information</div>
+                    <div class="auth-sub">How can we reach you?</div>
+                    <div class="auth-form-group">
+                        <label>Owner Name *</label>
+                        <input type="text" class="auth-input" id="reg-owner" placeholder="Full name">
+                    </div>
+                    <div class="auth-form-row">
+                        <div class="auth-form-group">
+                            <label>Phone *</label>
+                            <input type="tel" class="auth-input" id="reg-phone" placeholder="+27 71 000 0000">
+                        </div>
+                        <div class="auth-form-group">
+                            <label>WhatsApp</label>
+                            <input type="tel" class="auth-input" id="reg-whatsapp" placeholder="+27 71 000 0000">
+                        </div>
+                    </div>
+                    <div class="auth-form-group">
+                        <label>Email *</label>
+                        <input type="email" class="auth-input" id="reg-email" placeholder="owner@restaurant.co.za">
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="auth-btn" style="background:rgba(255,255,255,0.1);" onclick="vendorBack(1)">← Back</button>
+                        <button class="auth-btn" style="flex:2;" onclick="vendorNext(1)">Next →</button>
+                    </div>
+                </div>
+                <div class="reg-step" id="vendorStep2">
+                    <div class="auth-title">Almost Done!</div>
+                    <div class="auth-sub">Optional details</div>
+                    <div class="auth-form-group">
+                        <label>Business Reg. No. (optional)</label>
+                        <input type="text" class="auth-input" id="reg-regno">
+                    </div>
+                    <div style="display:flex;gap:10px;">
+                        <button class="auth-btn" style="background:rgba(255,255,255,0.1);" onclick="vendorBack(2)">← Back</button>
+                        <button class="auth-btn" style="flex:2;" onclick="submitVendorRegistration()" id="vendorRegSubmit">Submit Application</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DRIVER AUTH -->
+        <div id="driverAuthPanel" class="auth-panel hidden">
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchDriverTab('login')">Sign In</button>
+                <button class="auth-tab" onclick="switchDriverTab('register')">Register</button>
+            </div>
+            <div id="driverLoginPanel">
+                <div class="auth-title">Driver Sign In</div>
+                <div class="auth-sub">Use your registered phone number</div>
+                <div class="auth-error" id="driverLoginError"></div>
+                <div class="auth-form">
+                    <div class="auth-form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" class="auth-input" id="driverLoginPhone" placeholder="+27 71 000 0000">
+                    </div>
+                    <button class="auth-btn" onclick="driverLogin()" id="driverLoginBtn">Sign In as Driver</button>
+                </div>
+                <div class="auth-divider">New driver?</div>
+                <button class="auth-btn" style="background:transparent;border:1.5px solid rgba(6,193,103,0.4);color:var(--accent);" onclick="switchDriverTab('register')">Create Driver Account</button>
+            </div>
+            <div id="driverRegisterPanel" style="display:none;">
+                <div class="auth-title">Driver Registration</div>
+                <div class="auth-sub">Join our delivery fleet</div>
+                <div class="auth-error" id="driverRegError"></div>
+                <div class="auth-success" id="driverRegSuccess"></div>
+                <div class="auth-form">
+                    <div class="auth-form-group">
+                        <label>Full Name *</label>
+                        <input type="text" class="auth-input" id="drv-reg-name" placeholder="e.g. Sipho Dlamini">
+                    </div>
+                    <div class="auth-form-group">
+                        <label>Phone Number *</label>
+                        <input type="tel" class="auth-input" id="drv-reg-phone" placeholder="+27 71 000 0000">
+                    </div>
+                    <div class="auth-form-row">
+                        <div class="auth-form-group">
+                            <label>Vehicle Type</label>
+                            <select class="auth-input" id="drv-reg-vehicle">
+                                <option value="motorcycle">Motorcycle</option>
+                                <option value="bicycle">Bicycle</option>
+                                <option value="car">Car</option>
+                                <option value="scooter">Scooter</option>
+                            </select>
+                        </div>
+                        <div class="auth-form-group">
+                            <label>Vehicle Plate</label>
+                            <input type="text" class="auth-input" id="drv-reg-plate" placeholder="e.g. GP 123-456">
+                        </div>
+                    </div>
+                    <div class="auth-form-group">
+                        <label>ID Number (optional)</label>
+                        <input type="text" class="auth-input" id="drv-reg-id" placeholder="SA ID number">
+                    </div>
+                    <button class="auth-btn" onclick="registerDriver()" id="driverRegBtn">Register</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SHIMMER -->
+<div id="shimmerOverlay" style="display:none;">
+    <div class="shim-sidebar">
+        <div class="shim-block shim-logo"></div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px;">
+            <div class="shim-block shim-nav"></div>
+            <div class="shim-block shim-nav"></div>
+            <div class="shim-block shim-nav"></div>
+            <div class="shim-block shim-nav"></div>
+        </div>
+    </div>
+    <div class="shim-main">
+        <div class="shim-block shim-header"></div>
+        <div class="shim-stats">
+            <div class="shim-block shim-stat"></div>
+            <div class="shim-block shim-stat"></div>
+            <div class="shim-block shim-stat"></div>
+            <div class="shim-block shim-stat"></div>
+        </div>
+        <div class="shim-row">
+            <div class="shim-block shim-card"></div>
+            <div class="shim-block shim-card"></div>
+        </div>
+        <div class="shim-block shim-table"></div>
+    </div>
+</div>
+
+<!-- VENDOR SIDEBAR -->
+<nav class="sidebar" id="vendorSidebar" style="display:none;">
+    <div class="logo">
+        <i data-lucide="utensils" class="logo-icon"></i>
+        <span class="logo-text">VYNIX<span>EATS</span></span>
+    </div>
+    <div class="vendor-chip" id="vendorChip">
+        <div class="vendor-chip-dot"></div>
+        <div><div style="font-weight:700;font-size:0.82rem;" id="chipName">My Restaurant</div><div style="font-size:0.72rem;">Vendor Portal</div></div>
+    </div>
+    <div class="nav-scroll">
+        <div class="nav-section">
+            <div class="nav-label">Main</div>
+            <div class="nav-item active" onclick="showVendorTab('dashboard',this)"><i data-lucide="layout-dashboard" class="nav-icon"></i><span class="nav-text">Dashboard</span></div>
+            <div class="nav-item" onclick="showVendorTab('menu',this)"><i data-lucide="book-open" class="nav-icon"></i><span class="nav-text">Menu Items</span></div>
+            <div class="nav-item" onclick="showVendorTab('featured',this)"><i data-lucide="star" class="nav-icon"></i><span class="nav-text">Featured Items</span></div>
+            <div class="nav-item" onclick="showVendorTab('orders',this)"><i data-lucide="shopping-bag" class="nav-icon"></i><span class="nav-text">Orders</span></div>
+            <div class="nav-item" onclick="showVendorTab('analytics',this)"><i data-lucide="bar-chart-3" class="nav-icon"></i><span class="nav-text">Analytics</span></div>
+        </div>
+        <div class="nav-section">
+            <div class="nav-label">Account</div>
+            <div class="nav-item" onclick="showVendorTab('profile',this)"><i data-lucide="store" class="nav-icon"></i><span class="nav-text">Store Profile</span></div>
+            <div class="nav-item" onclick="showVendorTab('settings',this)"><i data-lucide="settings" class="nav-icon"></i><span class="nav-text">Settings</span></div>
+            <button class="logout-btn" onclick="openLogoutModal()"><i data-lucide="log-out" class="nav-icon" style="color:var(--danger);"></i><span class="nav-text">Log Out</span></button>
+        </div>
+    </div>
+    <div class="user-profile" onclick="showVendorTab('profile',null)">
+        <div class="user-avatar" id="vendorAvatar">V</div>
+        <div class="user-info"><div style="font-weight:700;" id="vendorSidebarName">Vendor</div><div style="font-size:0.72rem;" id="vendorSidebarStatus">Open Store</div></div>
+    </div>
+</nav>
+
+<!-- VENDOR MAIN PANEL -->
+<main class="main-panel" id="vendorMainPanel" style="display:none;">
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="page-content active">
+        <div class="page-header">
+            <div>
+                <h1 id="dashGreeting">Good Morning ☀️</h1>
+                <p style="color:var(--dim);font-weight:500;margin-top:4px;" id="dashSubtitle">Here's your store summary</p>
+            </div>
+            <div class="store-status-toggle">
+                <button class="status-btn open active" onclick="setManualStoreStatus('open')">
+                    <i data-lucide="sun" style="width:16px;height:16px;"></i> Open
+                </button>
+                <button class="status-btn closed" onclick="setManualStoreStatus('closed')">
+                    <i data-lucide="moon" style="width:16px;height:16px;"></i> Closed
+                </button>
+            </div>
+            <button class="btn-primary" onclick="openAddItemModal()">
+                <i data-lucide="plus" style="width:18px;height:18px;"></i> Add Menu Item
+            </button>
+        </div>
+        <div id="statusBanner" style="border-radius:16px;padding:16px 22px;margin-bottom:24px;display:flex;align-items:center;gap:14px;border:1px solid var(--accent);background:var(--accent-light);">
+            <div style="width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(6,193,103,0.2);flex-shrink:0;animation:pulse 2s infinite;"></div>
+            <div>
+                <div style="font-weight:700;" id="bannerText">Your store is Open</div>
+                <div style="font-size:0.82rem;color:var(--accent-dark);" id="bannerSub">Customers can place orders</div>
+            </div>
+            <div style="margin-left:auto;" id="bannerBadge"><span class="badge badge-open">OPEN</span></div>
+            <div style="margin-left:auto;" id="storeHoursBadge"></div>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-icon"><i data-lucide="package" style="width:20px;height:20px;color:var(--accent);"></i></div><h3>Menu Items</h3><p id="stat-menu">0</p></div>
+            <div class="stat-card"><div class="stat-icon"><i data-lucide="star" style="width:20px;height:20px;color:var(--yellow);"></i></div><h3>Featured Items</h3><p id="stat-featured" style="color:var(--yellow);">0</p></div>
+            <div class="stat-card"><div class="stat-icon"><i data-lucide="shopping-bag" style="width:20px;height:20px;color:var(--purple);"></i></div><h3>Total Orders</h3><p id="stat-orders" style="color:var(--purple);">0</p></div>
+            <div class="stat-card"><div class="stat-icon"><i data-lucide="clock" style="width:20px;height:20px;color:var(--warning);"></i></div><h3>Pending Orders</h3><p id="stat-pending" style="color:var(--warning);">0</p></div>
+            <div class="stat-card"><div class="stat-icon"><i data-lucide="trending-up" style="width:20px;height:20px;color:var(--accent);"></i></div><h3>Est. Revenue</h3><p id="stat-revenue" style="color:var(--accent);">R 0</p></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;">
+            <div class="content-card">
+                <div class="card-header">
+                    <h2><i data-lucide="clock" style="width:18px;height:18px;color:var(--accent);"></i> Recent Orders</h2>
+                    <button class="btn btn-edit" onclick="showVendorTab('orders',document.querySelectorAll('#vendorSidebar .nav-item')[3])">View All</button>
+                </div>
+                <div id="recentOrdersList"><div class="empty-state"><i data-lucide="shopping-bag" style="width:44px;height:44px;display:block;margin:0 auto 12px;opacity:.4;"></i><p style="font-weight:600;margin-bottom:4px;">No orders yet</p><p style="font-size:0.85rem;">Orders will appear here when customers place them</p></div></div>
+            </div>
+            <div>
+                <div class="content-card" style="margin-bottom:18px;">
+                    <div class="card-header"><h2><i data-lucide="zap" style="width:18px;height:18px;color:var(--yellow);"></i> Quick Actions</h2></div>
+                    <div style="padding:16px;display:flex;flex-direction:column;gap:10px;">
+                        <button class="btn-primary" style="width:100%;justify-content:center;" onclick="openAddItemModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Add Menu Item</button>
+                        <button class="btn btn-edit" style="width:100%;justify-content:center;padding:13px;" onclick="showVendorTab('featured',document.querySelectorAll('#vendorSidebar .nav-item')[2])"><i data-lucide="star" style="width:16px;height:16px;"></i> Manage Featured</button>
+                        <button class="btn btn-edit" style="width:100%;justify-content:center;padding:13px;" onclick="showVendorTab('profile',document.querySelectorAll('#vendorSidebar .nav-item')[5])"><i data-lucide="edit-2" style="width:16px;height:16px;"></i> Edit Store Profile</button>
+                        <button class="btn btn-edit" style="width:100%;justify-content:center;padding:13px;" onclick="showVendorTab('analytics',document.querySelectorAll('#vendorSidebar .nav-item')[4])"><i data-lucide="bar-chart-3" style="width:16px;height:16px;"></i> View Analytics</button>
+                    </div>
+                </div>
+                <div class="content-card">
+                    <div class="card-header"><h2><i data-lucide="info" style="width:18px;height:18px;color:var(--accent);"></i> Store Info</h2></div>
+                    <div style="padding:16px;display:flex;flex-direction:column;gap:12px;" id="storeInfoSnippet"><div style="color:var(--dim);font-size:0.88rem;text-align:center;padding:12px;">Loading store info…</div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MENU ITEMS -->
+    <section id="menu" class="page-content">
+        <div class="page-header">
+            <h1>Menu Items</h1>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                <input type="text" class="search-bar" id="menuSearch" placeholder="Search items…" oninput="filterMenuItems(this.value)">
+                <select class="search-bar" style="width:160px;" id="menuCatFilter" onchange="filterMenuItems(document.getElementById('menuSearch').value)">
+                    <option value="">All Categories</option>
+                    <option value="Starters">Starters</option>
+                    <option value="Mains">Mains</option>
+                    <option value="Burgers">Burgers</option>
+                    <option value="Pizza">Pizza</option>
+                    <option value="Salads">Salads</option>
+                    <option value="Desserts">Desserts</option>
+                    <option value="Drinks">Drinks</option>
+                    <option value="Sides">Sides</option>
+                    <option value="Specials">Specials</option>
+                </select>
+                <button class="btn-primary" onclick="openAddItemModal()"><i data-lucide="plus" style="width:18px;height:18px;"></i> Add Item</button>
+            </div>
+        </div>
+        <div id="menuGrid" class="menu-grid"></div>
+    </section>
+
+    <!-- FEATURED -->
+    <section id="featured" class="page-content">
+        <div class="page-header">
+            <h1>Featured Items</h1>
+            <button class="btn-primary" onclick="openAddItemModal()"><i data-lucide="plus" style="width:18px;height:18px;"></i> Add Item</button>
+        </div>
+        <div class="featured-banner">
+            <i data-lucide="star" style="width:22px;height:22px;color:#f59e0b;flex-shrink:0;"></i>
+            <div>
+                <div style="font-weight:700;color:#92400e;">Featured items appear on the customer app homepage</div>
+                <div style="font-size:0.82rem;color:#b45309;margin-top:2px;">Mark items as Featured to showcase your best dishes to customers.</div>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+            <div class="content-card">
+                <div class="card-header"><h2><i data-lucide="star" style="width:18px;height:18px;color:var(--yellow);"></i> Currently Featured <span id="featuredCount" style="background:var(--yellow);color:#5a3e00;border-radius:999px;padding:2px 10px;font-size:0.72rem;margin-left:6px;">0</span></h2></div>
+                <div id="featuredItemsList" style="padding:16px;"><div style="color:var(--dim);text-align:center;padding:20px;font-size:0.88rem;">No featured items yet</div></div>
+            </div>
+            <div class="content-card">
+                <div class="card-header"><h2><i data-lucide="package" style="width:18px;height:18px;color:var(--dim);"></i> All Items — Toggle Featured</h2></div>
+                <div id="featuredToggleList" style="padding:16px;max-height:400px;overflow-y:auto;"></div>
+            </div>
+        </div>
+        <div class="content-card">
+            <div class="card-header"><h2><i data-lucide="eye" style="width:18px;height:18px;color:var(--accent);"></i> Customer App Preview</h2></div>
+            <div style="padding:20px;">
+                <div style="background:linear-gradient(135deg,#0d1f14,#0a2e1a);border-radius:20px;padding:24px;color:white;">
+                    <div style="font-size:0.78rem;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,0.5);margin-bottom:12px;font-weight:700;">⭐ Featured Dishes</div>
+                    <div id="featuredPreviewCards" style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ORDERS -->
+    <section id="orders" class="page-content">
+        <div class="page-header">
+            <h1>Orders</h1>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <select class="search-bar" style="width:180px;" id="orderFilter" onchange="renderOrders()">
+                    <option value="all">All Orders</option>
+                    <option value="pending">Pending</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="preparing">Preparing</option>
+                    <option value="ready">Ready</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+        </div>
+        <div class="content-card" id="ordersContainer"><div class="empty-state"><i data-lucide="shopping-bag" style="width:48px;height:48px;display:block;margin:0 auto 12px;opacity:.4;"></i>No orders found</div></div>
+    </section>
+
+    <!-- ANALYTICS -->
+    <section id="analytics" class="page-content">
+        <div class="page-header"><h1>Analytics</h1></div>
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+            <div class="stat-card"><h3>Active Items</h3><p id="ana-items">0</p></div>
+            <div class="stat-card"><h3>Total Orders</h3><p id="ana-orders" style="color:var(--purple);">0</p></div>
+            <div class="stat-card"><h3>Est. Revenue</h3><p id="ana-revenue" style="color:var(--accent);">R 0</p></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="content-card">
+                <div class="card-header"><h2><i data-lucide="package" style="width:18px;height:18px;color:var(--accent);"></i> Menu by Category</h2></div>
+                <div id="categoryBreakdown" style="padding:20px;"></div>
+            </div>
+            <div class="content-card">
+                <div class="card-header"><h2><i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--accent);"></i> Monthly Orders</h2></div>
+                <div class="chart-container" id="ordersChart"></div>
+            </div>
+        </div>
+        <div class="content-card" style="margin-top:20px;">
+            <div class="card-header"><h2><i data-lucide="tag" style="width:18px;height:18px;color:var(--accent);"></i> Menu Pricing Breakdown</h2></div>
+            <div style="padding:20px;" id="pricingBreakdown"></div>
+        </div>
+    </section>
+
+    <!-- STORE PROFILE -->
+    <section id="profile" class="page-content">
+        <div class="page-header">
+            <h1>Store Profile</h1>
+            <button class="btn-primary" onclick="saveStoreProfile()"><i data-lucide="save" style="width:18px;height:18px;"></i> Save Changes</button>
+        </div>
+
+        <div class="profile-section">
+            <h3><i data-lucide="store" style="width:16px;height:16px;"></i> Business Identity</h3>
+            <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px;">
+                <div class="profile-avatar" id="profileAvatar"><span id="profileAvatarInitials">V</span></div>
+                <div>
+                    <div style="font-weight:800;font-size:1.2rem;" id="profileHeaderName">My Restaurant</div>
+                    <div style="color:var(--dim);font-size:0.88rem;margin-top:4px;" id="profileHeaderCuisine">Cuisine type</div>
+                    <div style="margin-top:8px;" id="profileHeaderBadge"></div>
+                </div>
+                <div style="margin-left:auto;">
+                    <div style="font-size:0.8rem;color:var(--dim);margin-bottom:4px;font-weight:600;">Vendor ID</div>
+                    <div style="font-family:monospace;font-weight:700;font-size:0.92rem;background:var(--bg);padding:6px 16px;border-radius:999px;border:1px solid var(--border);" id="profileVendorID">—</div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Business Name</label><input type="text" id="p-name" placeholder="Restaurant name"></div>
+                <div class="form-group"><label>Trading Name</label><input type="text" id="p-tradename" placeholder="Alias or trading name"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Cuisine Category</label>
+                    <select id="p-cuisine-cat">
+                        <option value="">Select category</option>
+                        <option value="Fast Food">Fast Food</option>
+                        <option value="Pizza">Pizza</option>
+                        <option value="Burgers">Burgers</option>
+                        <option value="Chicken">Chicken</option>
+                        <option value="Sushi">Sushi</option>
+                        <option value="Indian">Indian</option>
+                        <option value="Chinese">Chinese</option>
+                        <option value="Italian">Italian</option>
+                        <option value="African">African</option>
+                        <option value="Healthy / Salads">Healthy / Salads</option>
+                        <option value="Desserts / Bakery">Desserts / Bakery</option>
+                        <option value="Drinks / Beverages">Drinks / Beverages</option>
+                        <option value="Halaal">Halaal</option>
+                        <option value="Vegan / Vegetarian">Vegan / Vegetarian</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Cuisine Description</label><input type="text" id="p-cuisine" placeholder="e.g. Wood-fired Neapolitan pizza"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Business Reg. No.</label><input type="text" id="p-regno" placeholder="e.g. 2021/123456/07"></div>
+                <div class="form-group"><label>VAT Number</label><input type="text" id="p-vat" placeholder="e.g. 4123456789"></div>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h3><i data-lucide="tags" style="width:16px;height:16px;"></i> Shop Categories</h3>
+            <p style="color:var(--dim);font-size:0.85rem;margin-bottom:14px;">Select all categories your shop provides.</p>
+            <div class="categories-checkbox-grid" id="p-shop-categories">
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Pizza"> 🍕 Pizza</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Burgers"> 🍔 Burgers</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Sushi"> 🍣 Sushi</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Healthy"> 🥗 Healthy</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Desserts"> 🍰 Desserts</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Fast Food"> 🍟 Fast Food</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="African"> 🇿🇦 African</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Indian"> 🍛 Indian</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Chinese"> 🥟 Chinese</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Italian"> 🍝 Italian</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Chicken"> 🍗 Chicken</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Seafood"> 🦐 Seafood</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Vegetarian"> 🌱 Vegetarian</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Drinks"> 🥤 Drinks</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Coffee"> ☕ Coffee</label>
+                <label class="category-check-label" onclick="toggleProfileCategory(this)"><input type="checkbox" value="Bakery"> 🧁 Bakery</label>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h3><i data-lucide="phone" style="width:16px;height:16px;"></i> Contact Details</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Owner / Contact Person</label><input type="text" id="p-owner" placeholder="Full name"></div>
+                <div class="form-group"><label>Phone Number</label><input type="tel" id="p-phone" placeholder="+27 71 000 0000"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Email Address</label><input type="email" id="p-email" placeholder="vendor@business.co.za"></div>
+                <div class="form-group"><label>WhatsApp Number</label><input type="tel" id="p-whatsapp" placeholder="+27 71 000 0000"></div>
+            </div>
+            <div class="form-group"><label>Website / Social Media</label><input type="url" id="p-website" placeholder="https://www.business.co.za"></div>
+        </div>
+
+        <div class="profile-section">
+            <h3><i data-lucide="map-pin" style="width:16px;height:16px;"></i> Location</h3>
+            <div style="margin-bottom:16px;">
+                <button class="btn btn-edit" id="setLocationBtn" onclick="toggleInlineLocationPicker()" style="width:100%;padding:14px;justify-content:center;">
+                    <i data-lucide="map" style="width:18px;height:18px;"></i> 📍 Set Store Location
+                </button>
+            </div>
+            <div class="inline-location-picker" id="inlineLocationPicker">
+                <button class="picker-close-btn" onclick="toggleInlineLocationPicker()">✕ Close</button>
+                <div class="picker-title"><i data-lucide="navigation" style="width:14px;height:14px;color:var(--accent);"></i> Find your store location</div>
+                <button class="use-location-btn" id="useCurrentLocationBtn" onclick="detectCurrentLocationInline()">
+                    <i data-lucide="navigation" style="width:16px;height:16px;"></i> Use Current Location
+                </button>
+                <input type="text" class="location-search-input" id="inlineLocationInput" placeholder="Search address or place…" autocomplete="off">
+                <div class="picker-radius-label">Delivery Radius</div>
+                <div class="picker-radius-grid" id="inlineRadiusGrid">
+                    <div class="picker-radius-opt" data-value="3" onclick="selectInlineRadius(3)">3 km</div>
+                    <div class="picker-radius-opt selected" data-value="5" onclick="selectInlineRadius(5)">5 km</div>
+                    <div class="picker-radius-opt" data-value="10" onclick="selectInlineRadius(10)">10 km</div>
+                    <div class="picker-radius-opt" data-value="15" onclick="selectInlineRadius(15)">15 km</div>
+                    <div class="picker-radius-opt" data-value="20" onclick="selectInlineRadius(20)">20 km</div>
+                    <div class="picker-radius-opt" data-value="30" onclick="selectInlineRadius(30)">30 km</div>
+                </div>
+                <div class="picker-suggestions" id="inlineLocationSuggestions"></div>
+            </div>
+            <div class="form-group"><label>Street Address</label><input type="text" id="p-street" placeholder="e.g. 12 Main Street"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Suburb</label><input type="text" id="p-suburb" placeholder="e.g. Sandton"></div>
+                <div class="form-group"><label>City / Town</label><input type="text" id="p-city" placeholder="e.g. Johannesburg"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Province</label>
+                    <select id="p-province">
+                        <option value="">Select province</option>
+                        <option value="Gauteng">Gauteng</option>
+                        <option value="Western Cape">Western Cape</option>
+                        <option value="KwaZulu-Natal">KwaZulu-Natal</option>
+                        <option value="Eastern Cape">Eastern Cape</option>
+                        <option value="Limpopo">Limpopo</option>
+                        <option value="Mpumalanga">Mpumalanga</option>
+                        <option value="North West">North West</option>
+                        <option value="Free State">Free State</option>
+                        <option value="Northern Cape">Northern Cape</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Postal Code</label><input type="text" id="p-postal" placeholder="e.g. 2196" maxlength="4"></div>
+            </div>
+            <input type="hidden" id="p-lat">
+            <input type="hidden" id="p-lng">
+            <div class="form-row">
+                <div class="form-group"><label>Delivery Radius (km)</label>
+                    <select id="p-radius">
+                        <option value="3">3 km</option>
+                        <option value="5" selected>5 km</option>
+                        <option value="10">10 km</option>
+                        <option value="15">15 km</option>
+                        <option value="20">20 km</option>
+                        <option value="30">30 km</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Min. Order Value (R)</label><input type="number" id="p-minorder" placeholder="e.g. 50" min="0"></div>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h3><i data-lucide="clock" style="width:16px;height:16px;"></i> Operating Hours</h3>
+            <div class="form-row">
+                <div class="form-group"><label>Opening Time</label><input type="time" id="p-open" value="08:00"></div>
+                <div class="form-group"><label>Closing Time</label><input type="time" id="p-close" value="22:00"></div>
+            </div>
+            <div class="form-group"><label>Avg. Prep Time (mins)</label><input type="number" id="p-preptime" placeholder="e.g. 20" min="5" style="max-width:200px;"></div>
+            <div class="form-group" style="margin-top:14px;"><label>Operating Days</label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;" id="p-days">
+                    <label class="day-label" id="pday-mon"><input type="checkbox" value="Mon" onchange="togglePDay(this)"> Mon</label>
+                    <label class="day-label" id="pday-tue"><input type="checkbox" value="Tue" onchange="togglePDay(this)"> Tue</label>
+                    <label class="day-label" id="pday-wed"><input type="checkbox" value="Wed" onchange="togglePDay(this)"> Wed</label>
+                    <label class="day-label" id="pday-thu"><input type="checkbox" value="Thu" onchange="togglePDay(this)"> Thu</label>
+                    <label class="day-label" id="pday-fri"><input type="checkbox" value="Fri" onchange="togglePDay(this)"> Fri</label>
+                    <label class="day-label" id="pday-sat"><input type="checkbox" value="Sat" onchange="togglePDay(this)"> Sat</label>
+                    <label class="day-label" id="pday-sun"><input type="checkbox" value="Sun" onchange="togglePDay(this)"> Sun</label>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settings" class="page-content">
+        <div class="page-header">
+            <h1>Settings</h1>
+            <button class="btn-primary" onclick="saveSettings()"><i data-lucide="save" style="width:18px;height:18px;"></i> Save Settings</button>
+        </div>
+        <div style="display:grid;gap:20px;max-width:680px;">
+            <div style="background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:24px;">
+                <h3 style="font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;"><i data-lucide="store" style="width:18px;height:18px;color:var(--accent);"></i> Store Availability</h3>
+                <div class="settings-row"><div><div style="font-weight:600;">Store is Open</div><div style="font-size:0.82rem;color:var(--dim);">Toggle to pause all new orders</div></div><div class="toggle on" id="tog-open" onclick="toggleSetting(this,'storeOpen')"></div></div>
+                <div class="settings-row"><div><div style="font-weight:600;">Accept Online Orders</div><div style="font-size:0.82rem;color:var(--dim);">Allow customers to order online</div></div><div class="toggle on" id="tog-online" onclick="toggleSetting(this,'onlineOrders')"></div></div>
+                <div class="settings-row"><div><div style="font-weight:600;">Delivery Available</div><div style="font-size:0.82rem;color:var(--dim);">Offer delivery to customers</div></div><div class="toggle on" id="tog-delivery" onclick="toggleSetting(this,'deliveryAvailable')"></div></div>
+                <div class="settings-row"><div><div style="font-weight:600;">Takeaway Available</div><div style="font-size:0.82rem;color:var(--dim);">Allow collection orders</div></div><div class="toggle on" id="tog-takeaway" onclick="toggleSetting(this,'takeawayAvailable')"></div></div>
+            </div>
+            <div style="background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:24px;">
+                <h3 style="font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;"><i data-lucide="bell-ring" style="width:18px;height:18px;color:var(--accent);"></i> Notifications</h3>
+                <div class="settings-row"><div><div style="font-weight:600;">New Order Alerts</div><div style="font-size:0.82rem;color:var(--dim);">Sound & visual alert on new orders</div></div><div class="toggle on" id="tog-alerts" onclick="toggleSetting(this,'orderAlerts')"></div></div>
+                <div class="settings-row"><div><div style="font-weight:600;">Order SMS Notifications</div><div style="font-size:0.82rem;color:var(--dim);">Receive SMS for each order</div></div><div class="toggle" id="tog-sms" onclick="toggleSetting(this,'smsNotifs')"></div></div>
+            </div>
+            <div style="background:white;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:24px;">
+                <h3 style="font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px;color:var(--danger);"><i data-lucide="log-out" style="width:18px;height:18px;"></i> Session</h3>
+                <div class="settings-row">
+                    <div><div style="font-weight:600;">Signed in as</div><div style="font-size:0.82rem;color:var(--dim);" id="settingsSignedInAs">Vendor</div></div>
+                    <button class="btn btn-danger" onclick="openLogoutModal()" style="padding:10px 20px;"><i data-lucide="log-out" style="width:14px;height:14px;"></i> Log Out</button>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- DRIVER SIDEBAR -->
+<nav class="driver-sidebar" id="driverSidebar" style="display:none;">
+    <div class="logo">
+        <i data-lucide="bike" class="logo-icon" style="color:var(--accent);"></i>
+        <span class="logo-text">VYNIX<span>FLEET</span></span>
+    </div>
+    <div class="vendor-chip" style="background:#1e3327;border-color:var(--accent);">
+        <div class="vendor-chip-dot"></div>
+        <div><div style="font-weight:700;font-size:0.82rem;" id="driverChipName">Driver</div><div style="font-size:0.72rem;">Delivery Partner</div></div>
+    </div>
+    <div class="nav-scroll">
+        <div class="nav-section">
+            <div class="nav-label" style="color:rgba(255,255,255,0.5);">Driver</div>
+            <div class="nav-item active" onclick="showDriverTab('driverDashboard',this)"><i data-lucide="home" class="nav-icon"></i><span class="nav-text">Dashboard</span></div>
+            <div class="nav-item" onclick="showDriverTab('driverOrders',this)"><i data-lucide="shopping-bag" class="nav-icon"></i><span class="nav-text">My Orders</span></div>
+            <div class="nav-item" onclick="showDriverTab('driverProfile',this)"><i data-lucide="user" class="nav-icon"></i><span class="nav-text">Profile</span></div>
+        </div>
+        <button class="logout-btn" onclick="openLogoutModal()" style="color:#ff8a7a;"><i data-lucide="log-out" class="nav-icon"></i><span class="nav-text">Log Out</span></button>
+    </div>
+    <div class="user-profile" style="background:#1e3327;" onclick="showDriverTab('driverProfile',null)">
+        <div class="user-avatar" id="driverAvatar">D</div>
+        <div class="user-info"><div style="font-weight:700;color:white;" id="driverSidebarName">Driver</div><div style="font-size:0.72rem;color:var(--accent);" id="driverSidebarStatus">Offline</div></div>
+    </div>
+</nav>
+
+<!-- DRIVER MAIN PANEL -->
+<main class="driver-panel" id="driverMainPanel" style="display:none;">
+    <section id="driverDashboard" class="driver-content active">
+        <div class="page-header">
+            <h1>Driver Dashboard</h1>
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="updateDriverOnlineStatus('online')">🟢 Go Online</button>
+                <button class="btn btn-edit" onclick="updateDriverOnlineStatus('offline')">⚫ Go Offline</button>
+            </div>
+        </div>
+        <div class="driver-stats-grid">
+            <div class="driver-stat-card">
+                <div class="driver-stat-icon"><i data-lucide="package"></i></div>
+                <div class="driver-stat-label">Today's Deliveries</div>
+                <div class="driver-stat-value" id="driverTodayCount">0</div>
+            </div>
+            <div class="driver-stat-card">
+                <div class="driver-stat-icon"><i data-lucide="wallet"></i></div>
+                <div class="driver-stat-label">Total Earnings</div>
+                <div class="driver-stat-value" id="driverEarnings">R0</div>
+            </div>
+            <div class="driver-stat-card">
+                <div class="driver-stat-icon"><i data-lucide="clock"></i></div>
+                <div class="driver-stat-label">On-Time Rate</div>
+                <div class="driver-stat-value" id="driverOnTime">100%</div>
+            </div>
+            <div class="driver-stat-card">
+                <div class="driver-stat-icon"><i data-lucide="star"></i></div>
+                <div class="driver-stat-label">Rating</div>
+                <div class="driver-stat-value" id="driverRating">4.8</div>
+            </div>
+        </div>
+        <div class="current-order-card" id="currentOrderCard" style="display:none;">
+            <div class="current-order-header">
+                <h3><i data-lucide="bike" style="width:20px;height:20px;margin-right:8px;"></i> Current Delivery</h3>
+                <span class="order-eta-badge" id="currentOrderEta">ETA 15 min</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="font-weight:800; font-size:1.1rem;" id="currentOrderNumber">#VYX-12345</div>
+                    <div style="color:var(--dim); font-size:0.8rem;" id="currentOrderAddress">12 Main St, Sandton</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-weight:800; color:var(--accent); font-size:1.1rem;" id="currentOrderAmount">R 125.00</div>
+                    <div class="badge badge-open" id="currentOrderStatus">Ready for pickup</div>
+                </div>
+            </div>
+            <div style="margin-top:16px; display:flex; gap:8px;">
+                <button class="btn btn-success" style="flex:1;" onclick="markOrderPickedUp()">Picked Up</button>
+                <button class="btn btn-danger" style="flex:1;" onclick="markOrderDelivered()">Delivered</button>
+            </div>
+        </div>
+        <div class="content-card" style="margin-top:20px;">
+            <div class="card-header">
+                <h2><i data-lucide="history"></i> Recent Deliveries</h2>
+                <button class="btn btn-edit" onclick="showDriverTab('driverOrders',document.querySelector('#driverSidebar .nav-item')[1])">View All</button>
+            </div>
+            <div id="driverRecentOrdersList" style="max-height:300px; overflow-y:auto;">
+                <div class="empty-state">No recent deliveries</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="driverOrders" class="driver-content">
+        <div class="page-header"><h1>My Orders</h1></div>
+        <div class="driver-orders-list" id="driverOrdersList"><div class="empty-state">No orders assigned yet</div></div>
+    </section>
+
+    <section id="driverProfile" class="driver-content">
+        <div class="page-header">
+            <h1>Driver Profile</h1>
+            <button class="btn-primary" onclick="saveDriverProfile()"><i data-lucide="save"></i> Save</button>
+        </div>
+        <div class="driver-profile-section">
+            <div class="driver-profile-header">
+                <div class="driver-profile-avatar" id="driverProfileAvatar">D</div>
+                <div>
+                    <div class="driver-profile-title" id="driverProfileName">Driver Name</div>
+                    <div class="driver-profile-sub" id="driverProfilePhone">+27 71 234 5678</div>
+                    <div class="driver-profile-status-badge" id="driverProfileStatus"><i data-lucide="circle" style="width:10px;height:10px;"></i> Offline</div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Full Name</label><input type="text" id="driverName" placeholder="Your full name"></div>
+                <div class="form-group"><label>Phone</label><input type="tel" id="driverPhone" placeholder="Phone number"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Vehicle</label><select id="driverVehicle"><option value="motorcycle">Motorcycle</option><option value="car">Car</option><option value="scooter">Scooter</option></select></div>
+                <div class="form-group"><label>License Plate</label><input type="text" id="driverPlate" placeholder="e.g. GP 123-456"></div>
+            </div>
+            <div class="form-group"><label>ID Number</label><input type="text" id="driverId" placeholder="South African ID (optional)"></div>
+            <div class="form-group"><label>Preferred Zones</label><input type="text" id="driverZones" placeholder="e.g. Sandton, Rosebank"></div>
+        </div>
+    </section>
+</main>
+
+<!-- ITEM MODAL -->
+<div class="modal-overlay" id="itemModal">
+    <div class="modal-content">
+        <h3 id="itemModalTitle"><i data-lucide="package" style="width:22px;height:22px;color:var(--accent);"></i> Add Menu Item</h3>
+        <input type="hidden" id="item-key">
+        <div class="form-row">
+            <div class="form-group"><label>Item Name <span style="color:var(--danger)">*</span></label><input type="text" id="item-name" placeholder="e.g. Margherita Pizza"></div>
+            <div class="form-group"><label>Category <span style="color:var(--danger)">*</span></label>
+                <select id="item-category">
+                    <option value="">Select category</option>
+                    <option value="Starters">Starters</option>
+                    <option value="Mains">Mains</option>
+                    <option value="Burgers">Burgers</option>
+                    <option value="Pizza">Pizza</option>
+                    <option value="Salads">Salads</option>
+                    <option value="Desserts">Desserts</option>
+                    <option value="Drinks">Drinks</option>
+                    <option value="Sides">Sides</option>
+                    <option value="Specials">Specials</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="item-desc" placeholder="Brief description…"></textarea></div>
+        <div class="form-row">
+            <div class="form-group"><label>Price (R) <span style="color:var(--danger)">*</span></label><input type="number" id="item-price" placeholder="0.00" min="0" step="0.01"></div>
+            <div class="form-group"><label>Prep Time (mins)</label><input type="number" id="item-preptime" placeholder="e.g. 15" min="1"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Calories (optional)</label><input type="number" id="item-calories" placeholder="e.g. 450"></div>
+            <div class="form-group"><label>Allergens (optional)</label><input type="text" id="item-allergens" placeholder="e.g. Nuts, Dairy"></div>
+        </div>
+        <div class="form-group">
+            <label>Item Image <span style="color:var(--danger)">*</span> <span style="color:var(--dim);font-weight:400;text-transform:none;font-size:0.72rem;">(required — awaits admin approval before showing to customers)</span></label>
+            <input type="file" id="item-image" accept="image/*" onchange="previewItemImage(this)">
+            <div id="item-img-preview-wrap" style="display:none;margin-top:10px;">
+                <img id="item-img-preview" style="width:80px;height:80px;object-fit:cover;border-radius:12px;border:2px solid var(--border);">
+            </div>
+            <div id="uploadProgressWrap" style="display:none;margin-top:10px;">
+                <div style="display:flex;align-items:center;gap:8px;font-size:0.82rem;color:var(--dim);font-weight:600;">
+                    <div id="uploadProgressBar" style="flex:1;height:6px;background:var(--border);border-radius:999px;overflow:hidden;">
+                        <div id="uploadProgressFill" style="height:100%;width:0%;background:var(--accent);border-radius:999px;transition:width 0.3s;"></div>
+                    </div>
+                    <span id="uploadProgressText">0%</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Status</label>
+                <select id="item-status">
+                    <option value="available">Available</option>
+                    <option value="unavailable">Unavailable</option>
+                    <option value="sold_out">Sold Out</option>
+                </select>
+            </div>
+            <div class="form-group"><label>⭐ Featured on Customer App</label>
+                <select id="item-featured">
+                    <option value="false">Regular Item</option>
+                    <option value="true">Featured / Special</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-btn-row">
+            <button class="btn-primary" style="flex:2;justify-content:center;" onclick="saveMenuItem()">
+                <i data-lucide="check" style="width:16px;height:16px;"></i> <span id="itemSaveLabel">Add Item</span>
+            </button>
+            <button class="btn btn-edit" style="flex:1;justify-content:center;padding:14px;" onclick="hideModal('itemModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-content" style="max-width:400px;text-align:center;">
+        <div style="width:64px;height:64px;border-radius:50%;background:#fff1f0;border:2px solid #ffcdc9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <i data-lucide="trash-2" style="width:28px;height:28px;color:var(--danger);"></i>
+        </div>
+        <h3 style="justify-content:center;font-size:1.2rem;">Delete Item?</h3>
+        <p style="color:var(--dim);margin-bottom:0;">This will permanently remove <strong id="del-name"></strong> from your menu.</p>
+        <input type="hidden" id="del-key">
+        <div class="modal-btn-row">
+            <button class="btn btn-danger" style="flex:1;justify-content:center;padding:14px;" onclick="confirmDelete()"><i data-lucide="trash-2" style="width:15px;height:15px;"></i> Delete</button>
+            <button class="btn btn-edit" style="flex:1;justify-content:center;padding:14px;" onclick="hideModal('deleteModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE ORDER MODAL -->
+<div class="modal-overlay" id="deleteOrderModal">
+    <div class="modal-content" style="max-width:400px;text-align:center;">
+        <div style="width:64px;height:64px;border-radius:50%;background:#fff1f0;border:2px solid #ffcdc9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <i data-lucide="trash-2" style="width:28px;height:28px;color:var(--danger);"></i>
+        </div>
+        <h3 style="justify-content:center;font-size:1.2rem;">Delete Order?</h3>
+        <p style="color:var(--dim);margin-bottom:0;">This will permanently remove order <strong id="del-order-number"></strong>.</p>
+        <input type="hidden" id="del-order-key">
+        <div class="modal-btn-row">
+            <button class="btn btn-danger" style="flex:1;justify-content:center;padding:14px;" onclick="confirmDeleteOrder()"><i data-lucide="trash-2" style="width:15px;height:15px;"></i> Delete</button>
+            <button class="btn btn-edit" style="flex:1;justify-content:center;padding:14px;" onclick="hideModal('deleteOrderModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- ASSIGN DRIVER MODAL -->
+<div class="modal-overlay" id="assignDriverModal">
+    <div class="modal-content" style="max-width:500px;">
+        <h3><i data-lucide="bike" style="width:22px;height:22px;color:var(--accent);"></i> Assign Driver</h3>
+        <input type="hidden" id="assign-order-key">
+        <p style="color:var(--dim);font-size:0.88rem;margin-bottom:16px;">Select an approved driver to handle this delivery:</p>
+        <div id="driversList" style="max-height:380px; overflow-y:auto; margin-bottom:16px;"></div>
+        <div class="modal-btn-row">
+            <button class="btn btn-edit" style="flex:1;" onclick="hideModal('assignDriverModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- LOGOUT CONFIRMATION MODAL -->
+<div class="modal-overlay" id="logoutConfirmModal">
+    <div class="modal-content" style="max-width:400px;text-align:center;">
+        <div style="width:64px;height:64px;border-radius:50%;background:#fff1f0;border:2px solid #ffcdc9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <i data-lucide="log-out" style="width:28px;height:28px;color:var(--danger);"></i>
+        </div>
+        <h3 style="justify-content:center;">Log Out?</h3>
+        <p style="color:var(--dim);margin-bottom:16px;">Are you sure you want to log out? You will be redirected to the login screen.</p>
+        <div class="modal-btn-row">
+            <button class="btn btn-danger" style="flex:1;justify-content:center;padding:14px;" onclick="confirmLogout()"><i data-lucide="log-out" style="width:15px;height:15px;"></i> Yes, Log Out</button>
+            <button class="btn btn-edit" style="flex:1;justify-content:center;padding:14px;" onclick="hideModal('logoutConfirmModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- IMAGE DECLINED NOTIFICATION MODAL (for vendor) -->
+<div class="modal-overlay" id="imageDeclinedModal">
+    <div class="modal-content" style="max-width:400px;text-align:center;">
+        <div style="width:64px;height:64px;border-radius:50%;background:#fff1f0;border:2px solid #ffcdc9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <i data-lucide="x-circle" style="width:28px;height:28px;color:var(--danger);"></i>
+        </div>
+        <h3 style="justify-content:center;">Image Declined</h3>
+        <p id="declineReasonDisplay" style="color:var(--dim);margin-bottom:16px;"></p>
+        <div class="modal-btn-row">
+            <button class="btn btn-primary" style="flex:1;justify-content:center;" onclick="hideModal('imageDeclinedModal')">OK</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+    <i data-lucide="check-circle" style="width:18px;height:18px;"></i>
+    <span id="toastMsg">Done</span>
+</div>
+
+<script>
+lucide.createIcons();
+
+// ==================== CLOUDINARY CONFIG ====================
+const CLOUDINARY_CLOUD_NAME = 'dqkujefxj';
+const CLOUDINARY_UPLOAD_PRESET = 'banter_box';
+
+async function uploadToCloudinary(file, onProgress) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    formData.append('folder', 'vynix_menu');
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`);
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable && onProgress) onProgress(Math.round((e.loaded / e.total) * 100));
+        });
+        xhr.onload = () => {
+            if (xhr.status === 200) resolve(JSON.parse(xhr.responseText).secure_url);
+            else reject(new Error('Upload failed: ' + xhr.statusText));
+        };
+        xhr.onerror = () => reject(new Error('Network error during upload'));
+        xhr.send(formData);
+    });
+}
+
+function previewItemImage(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        document.getElementById('item-img-preview').src = e.target.result;
+        document.getElementById('item-img-preview-wrap').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+// Firebase config
+const firebaseConfig = {
+    apiKey: "AIzaSyAxBT0oESoL62oz_x_Z8cMtdENWZPx4tMI",
+    authDomain: "pinotp-d7ef5.firebaseapp.com",
+    databaseURL: "https://pinotp-d7ef5-default-rtdb.firebaseio.com",
+    projectId: "pinotp-d7ef5",
+    storageBucket: "pinotp-d7ef5.firebasestorage.app",
+    messagingSenderId: "708458917827",
+    appId: "1:708458917827:web:375de278577df0adcf9776"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ==================== GLOBAL STATE ====================
+let currentRole = 'vendor';
+let VENDOR_KEY = null;
+let vendorData = null;
+let menuCache = {};
+let ordersCache = {};
+let DRIVER_KEY = null;
+let driverData = null;
+let driverOrdersCache = {};
+let manualStoreStatus = null;
+const MAPBOX_TOKEN = 'pk.eyJ1Ijoia2F0bGVnb3BoYXNoYSIsImEiOiJjbTlpOTdzbmYwMGNsMmpzYWJtZzN4d3pqIn0.Zt-aSMEoahrV3zkiVVHbOw';
+let inlineSelectedRadius = 5;
+let approvedDrivers = [];
+
+// ==================== AUTH UI ====================
+function setRole(role) {
+    currentRole = role;
+    document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('vendorAuthPanel').classList.toggle('hidden', role !== 'vendor');
+    document.getElementById('driverAuthPanel').classList.toggle('hidden', role !== 'driver');
+}
+function switchVendorTab(tab) {
+    document.querySelectorAll('#vendorAuthPanel .auth-tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+    document.getElementById('vendorLoginPanel').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('vendorRegisterPanel').style.display = tab === 'register' ? 'block' : 'none';
+}
+function switchDriverTab(tab) {
+    document.querySelectorAll('#driverAuthPanel .auth-tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+    document.getElementById('driverLoginPanel').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('driverRegisterPanel').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+// ==================== VENDOR LOGIN / REGISTER ====================
+let vendorStep = 0;
+function vendorNext(step) {
+    const err = document.getElementById('vendorRegError');
+    err.style.display = 'none';
+    if (step === 0) {
+        if (!document.getElementById('reg-name').value.trim()) { err.textContent='Restaurant name required'; err.style.display='block'; return; }
+        if (!document.getElementById('reg-city').value.trim()) { err.textContent='City required'; err.style.display='block'; return; }
+        if (!document.getElementById('reg-province').value) { err.textContent='Select province'; err.style.display='block'; return; }
+    } else if (step === 1) {
+        if (!document.getElementById('reg-owner').value.trim()) { err.textContent='Owner name required'; err.style.display='block'; return; }
+        if (!document.getElementById('reg-phone').value.trim()) { err.textContent='Phone required'; err.style.display='block'; return; }
+        if (!document.getElementById('reg-email').value.trim()) { err.textContent='Email required'; err.style.display='block'; return; }
+    }
+    document.getElementById('vendorStep'+step).classList.remove('active');
+    document.getElementById('vendorStep'+(step+1)).classList.add('active');
+    vendorStep = step+1;
+    updateVendorDots(vendorStep);
+}
+function vendorBack(step) {
+    document.getElementById('vendorStep'+step).classList.remove('active');
+    document.getElementById('vendorStep'+(step-1)).classList.add('active');
+    vendorStep = step-1;
+    updateVendorDots(vendorStep);
+}
+function updateVendorDots(step) {
+    for (let i=0; i<3; i++) {
+        const dot = document.getElementById('vdot-'+i);
+        dot.className = 'step-dot' + (i<step ? ' done' : i===step ? ' active' : '');
+    }
+}
+async function vendorLogin() {
+    const vendorId = document.getElementById('vendorLoginId').value.trim().toUpperCase();
+    const err = document.getElementById('vendorLoginError');
+    const btn = document.getElementById('vendorLoginBtn');
+    if (!vendorId) { err.textContent='Enter Vendor ID'; err.style.display='block'; return; }
+    btn.disabled = true;
+    try {
+        const snap = await db.ref('vendors').orderByChild('vendorID').equalTo(vendorId).once('value');
+        const data = snap.val();
+        if (!data) throw new Error('ID not found');
+        const key = Object.keys(data)[0];
+        const vendor = data[key];
+        if (vendor.status === 'pending') throw new Error('Pending approval');
+        if (vendor.status === 'disabled') throw new Error('Account disabled');
+        VENDOR_KEY = key;
+        localStorage.setItem('vynix_vendor_session', JSON.stringify({ key, vendorId, role:'vendor', loggedAt:Date.now() }));
+        enterVendorPortal();
+    } catch (e) {
+        err.textContent = e.message;
+        err.style.display = 'block';
+        btn.disabled = false;
+    }
+}
+async function submitVendorRegistration() {
+    const err = document.getElementById('vendorRegError');
+    const suc = document.getElementById('vendorRegSuccess');
+    const btn = document.getElementById('vendorRegSubmit');
+    err.style.display = 'none';
+    btn.disabled = true;
+    const application = {
+        name: document.getElementById('reg-name').value.trim(),
+        shopCategories: [], categories: [],
+        address: { city: document.getElementById('reg-city').value.trim(), province: document.getElementById('reg-province').value },
+        ownerName: document.getElementById('reg-owner').value.trim(),
+        phone: document.getElementById('reg-phone').value.trim(),
+        whatsapp: document.getElementById('reg-whatsapp').value.trim(),
+        email: document.getElementById('reg-email').value.trim(),
+        businessRegNo: document.getElementById('reg-regno').value.trim(),
+        status: 'pending', vendorID: null,
+        appliedAt: Date.now(), updatedAt: Date.now(),
+    };
+    try {
+        await db.ref('vendors').push(application);
+        suc.innerHTML = '✅ Application submitted! Admin will review and assign your Vendor ID.';
+        suc.style.display = 'block';
+        btn.textContent = 'Application Sent';
+        setTimeout(() => {
+            switchVendorTab('login');
+            vendorStep = 0; updateVendorDots(0);
+            btn.disabled = false; btn.textContent = 'Submit Application';
+            suc.style.display = 'none';
+        }, 3500);
+    } catch (e) {
+        err.textContent = 'Submission failed.';
+        err.style.display = 'block';
+        btn.disabled = false;
+    }
+}
+
+// ==================== DRIVER LOGIN / REGISTER ====================
+async function registerDriver() {
+    const err = document.getElementById('driverRegError');
+    const suc = document.getElementById('driverRegSuccess');
+    const btn = document.getElementById('driverRegBtn');
+    const name = document.getElementById('drv-reg-name').value.trim();
+    const phone = document.getElementById('drv-reg-phone').value.trim();
+    if (!name || !phone) { err.textContent='Name and phone required'; err.style.display='block'; return; }
+    btn.disabled = true;
+    try {
+        const snap = await db.ref('drivers').orderByChild('phone').equalTo(phone).once('value');
+        if (snap.exists()) throw new Error('Phone number already registered');
+        const newDriver = { name, phone, vehicle: document.getElementById('drv-reg-vehicle').value, plate: document.getElementById('drv-reg-plate').value.trim(), idNumber: document.getElementById('drv-reg-id').value.trim(), status: 'pending', createdAt: Date.now() };
+        await db.ref('drivers').push(newDriver);
+        suc.textContent = 'Registration successful! Await admin approval.';
+        suc.style.display = 'block';
+        setTimeout(() => switchDriverTab('login'), 2000);
+    } catch (e) {
+        err.textContent = e.message;
+        err.style.display = 'block';
+    } finally { btn.disabled = false; }
+}
+async function driverLogin() {
+    const phone = document.getElementById('driverLoginPhone').value.trim();
+    const err = document.getElementById('driverLoginError');
+    const btn = document.getElementById('driverLoginBtn');
+    if (!phone) { err.textContent='Enter phone number'; err.style.display='block'; return; }
+    btn.disabled = true;
+    try {
+        const snap = await db.ref('drivers').orderByChild('phone').equalTo(phone).once('value');
+        const data = snap.val();
+        if (!data) throw new Error('Driver not found');
+        const key = Object.keys(data)[0];
+        const driver = data[key];
+        if (driver.status === 'pending') throw new Error('Your account is pending admin approval');
+        if (driver.status === 'disabled') throw new Error('Your account is disabled');
+        DRIVER_KEY = key; driverData = driver;
+        localStorage.setItem('vynix_driver_session', JSON.stringify({ key, phone, role:'driver', loggedAt:Date.now() }));
+        enterDriverPortal();
+    } catch (e) {
+        err.textContent = e.message;
+        err.style.display = 'block';
+        btn.disabled = false;
+    }
+}
+
+// ==================== PORTAL ENTRY ====================
+function enterVendorPortal() {
+    document.getElementById('authScreen').classList.add('hidden');
+    showShimmer();
+    startVendorSync();
+    fetchApprovedDrivers();
+    setTimeout(() => {
+        document.getElementById('vendorSidebar').style.display = 'flex';
+        document.getElementById('vendorMainPanel').style.display = 'block';
+        hideShimmer();
+    }, 1500);
+}
+function enterDriverPortal() {
+    document.getElementById('authScreen').classList.add('hidden');
+    showShimmer();
+    startDriverSync();
+    setTimeout(() => {
+        document.getElementById('driverSidebar').style.display = 'flex';
+        document.getElementById('driverMainPanel').style.display = 'block';
+        hideShimmer();
+    }, 1500);
+}
+function showShimmer() { document.getElementById('shimmerOverlay').style.display = 'flex'; }
+function hideShimmer() {
+    const sh = document.getElementById('shimmerOverlay');
+    sh.classList.add('fade-out');
+    setTimeout(() => { sh.style.display = 'none'; sh.classList.remove('fade-out'); }, 600);
+}
+
+// ==================== VENDOR NOTIFICATIONS LISTENER (for image declines) - REMOVED AUTOMATIC MODAL ====================
+// Instead, we will show decline reason when vendor clicks on the item's warning icon
+
+function fetchApprovedDrivers() {
+    db.ref('drivers').orderByChild('status').equalTo('active').on('value', snap => {
+        const data = snap.val();
+        if (data) {
+            approvedDrivers = Object.entries(data).map(([key, val]) => {
+                const name    = val.name
+                    || ((val.firstName || '') + (val.lastName ? ' ' + val.lastName : '')).trim()
+                    || 'Unnamed Driver';
+                const vehicle = val.vehicle    || val.vehicleType || 'Unknown vehicle';
+                const plate   = val.plate      || val.vehicleDesc  || '';
+                const phone   = val.phone      || '';
+                return { key, ...val, name, vehicle, plate, phone };
+            });
+        } else {
+            approvedDrivers = [];
+        }
+    });
+}
+
+// ==================== VENDOR SYNC ====================
+function startVendorSync() {
+    if (!VENDOR_KEY) return;
+    db.ref('vendors/' + VENDOR_KEY).on('value', snap => { vendorData = snap.val(); if (!vendorData) return; applyVendorUI(); });
+    db.ref('vendors/' + VENDOR_KEY + '/menu').on('value', snap => { menuCache = snap.val() || {}; renderMenuGrid(); renderFeaturedItems(); updateDashboardStats(); updateAnalyticsStats(); });
+    db.ref('orders').orderByChild('vendorKey').equalTo(VENDOR_KEY).on('value', snap => { ordersCache = snap.val() || {}; renderOrders(); renderRecentOrders(); updateDashboardStats(); updateAnalyticsStats(); });
+}
+
+// ==================== PROFILE CATEGORY TOGGLE ====================
+function toggleProfileCategory(label) {
+    const cb = label.querySelector('input[type="checkbox"]');
+    setTimeout(() => { label.classList.toggle('checked', cb.checked); }, 10);
+}
+
+// ==================== STORE STATUS ====================
+function getUserDisplayName() {
+    if (currentRole === 'vendor' && vendorData) return vendorData.ownerName || vendorData.name || 'Vendor';
+    if (currentRole === 'driver' && driverData) return driverData.name || 'Driver';
+    return 'User';
+}
+function getUserRole() { return currentRole === 'vendor' ? 'Restaurant Partner' : 'Delivery Partner'; }
+
+function setManualStoreStatus(status) {
+    manualStoreStatus = status;
+    document.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
+    if (status === 'open') document.querySelector('.status-btn.open').classList.add('active');
+    else document.querySelector('.status-btn.closed').classList.add('active');
+    if (VENDOR_KEY) db.ref('vendors/' + VENDOR_KEY).update({ manualStoreStatus: status, updatedAt: Date.now() });
+    updateStoreStatusDisplay();
+    showToast(`Store manually set to ${status}`);
+}
+function getStoreOpenStatus() {
+    if (manualStoreStatus) return manualStoreStatus === 'open';
+    return checkStoreHours().isOpen;
+}
+function checkStoreHours() {
+    if (!vendorData) return { isOpen: false, message: 'Hours not set' };
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    const operatingDays = vendorData.operatingDays || ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const daysMap = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const today = daysMap[now.getDay()];
+    if (!operatingDays.includes(today)) return { isOpen: false, message: 'Closed today' };
+    const openTimeStr = vendorData.openingTime || '08:00';
+    const closeTimeStr = vendorData.closingTime || '22:00';
+    const [openHour, openMin] = openTimeStr.split(':').map(Number);
+    const [closeHour, closeMin] = closeTimeStr.split(':').map(Number);
+    const openTime = openHour * 60 + openMin;
+    let closeTime = closeHour * 60 + closeMin;
+    if (closeTime < openTime) closeTime += 24 * 60;
+    let adjTime = currentTime;
+    if (closeTime > 24*60 && currentTime < closeTime - 24*60) adjTime += 24*60;
+    const isOpen = adjTime >= openTime && adjTime < closeTime;
+    return { isOpen, message: isOpen ? `Open until ${closeTimeStr}` : `Opens at ${openTimeStr}` };
+}
+function updateStoreStatusDisplay() {
+    const isOpen = getStoreOpenStatus();
+    const banner = document.getElementById('statusBanner');
+    const hoursStatus = checkStoreHours();
+    if (isOpen) {
+        banner.style.background = 'var(--accent-light)'; banner.style.borderColor = 'var(--accent)';
+        document.getElementById('bannerText').textContent = `${vendorData?.name || 'Your store'} is Open`;
+        document.getElementById('bannerSub').textContent = manualStoreStatus ? 'Manually set to open' : (hoursStatus.isOpen ? `Open for orders • ${hoursStatus.message}` : `Open (manual override) • ${hoursStatus.message}`);
+        document.getElementById('bannerBadge').innerHTML = '<span class="badge badge-open">OPEN</span>';
+    } else {
+        banner.style.background = '#fff1f0'; banner.style.borderColor = 'var(--danger)';
+        document.getElementById('bannerText').textContent = `${vendorData?.name || 'Your store'} is Closed`;
+        document.getElementById('bannerSub').textContent = manualStoreStatus ? 'Manually set to closed' : hoursStatus.message;
+        document.getElementById('bannerBadge').innerHTML = '<span class="badge badge-closed">CLOSED</span>';
+    }
+}
+function createHoursBadge() {
+    const badge = document.createElement('div');
+    badge.id = 'storeHoursBadge'; badge.style.marginLeft = 'auto';
+    document.getElementById('statusBanner').appendChild(badge);
+    return badge;
+}
+function applyVendorUI() {
+    if (!vendorData) return;
+    const name = vendorData.name || 'My Restaurant';
+    const status = vendorData.status || 'pending';
+    const initial = name.charAt(0).toUpperCase();
+    if (vendorData.manualStoreStatus) manualStoreStatus = vendorData.manualStoreStatus;
+    document.getElementById('chipName').textContent = name;
+    document.getElementById('vendorSidebarName').textContent = name;
+    document.getElementById('vendorSidebarStatus').textContent = status === 'active' ? 'Open Store' : status;
+    document.getElementById('vendorAvatar').textContent = initial;
+    document.getElementById('dashSubtitle').textContent = `Welcome back to ${name}`;
+    const userName = getUserDisplayName();
+    document.getElementById('settingsSignedInAs').innerHTML = `${userName} <span style="color:var(--accent);font-size:0.7rem;">(${getUserRole()})</span>`;
+    const banner = document.getElementById('statusBanner');
+    const hoursStatus = checkStoreHours();
+    const isOpen = getStoreOpenStatus();
+    if (status === 'active') {
+        if (isOpen) {
+            banner.style.background = 'var(--accent-light)'; banner.style.borderColor = 'var(--accent)';
+            document.getElementById('bannerText').textContent = `${name} is Open`;
+            document.getElementById('bannerSub').textContent = manualStoreStatus ? 'Manually set to open' : (hoursStatus.isOpen ? `Open for orders • ${hoursStatus.message}` : `Open (manual override) • ${hoursStatus.message}`);
+            document.getElementById('bannerBadge').innerHTML = '<span class="badge badge-open">OPEN</span>';
+        } else {
+            banner.style.background = '#fff1f0'; banner.style.borderColor = 'var(--danger)';
+            document.getElementById('bannerText').textContent = `${name} is Closed`;
+            document.getElementById('bannerSub').textContent = manualStoreStatus ? 'Manually set to closed' : hoursStatus.message;
+            document.getElementById('bannerBadge').innerHTML = '<span class="badge badge-closed">CLOSED</span>';
+        }
+        const hoursBadge = document.getElementById('storeHoursBadge') || createHoursBadge();
+        hoursBadge.innerHTML = hoursStatus.isOpen ?
+            '<span class="badge badge-open"><i data-lucide="sun" style="width:12px;height:12px;"></i> OPEN</span>' :
+            '<span class="badge badge-closed"><i data-lucide="moon" style="width:12px;height:12px;"></i> CLOSED</span>';
+    } else if (status === 'pending') {
+        banner.style.background = '#fff5cc'; banner.style.borderColor = '#ffe066';
+        document.getElementById('bannerText').textContent = 'Your store is pending approval';
+        document.getElementById('bannerSub').textContent = 'Admin will review your application shortly';
+        document.getElementById('bannerBadge').innerHTML = '<span class="badge badge-pending">PENDING</span>';
+        document.getElementById('storeHoursBadge')?.remove();
+    } else {
+        banner.style.background = '#fff1f0'; banner.style.borderColor = 'var(--danger)';
+        document.getElementById('bannerText').textContent = 'Your store is currently disabled';
+        document.getElementById('bannerSub').textContent = 'Contact admin to re-enable your store';
+        document.getElementById('bannerBadge').innerHTML = '<span class="badge badge-disabled">DISABLED</span>';
+        document.getElementById('storeHoursBadge')?.remove();
+    }
+    if (manualStoreStatus === 'open') { document.querySelector('.status-btn.open').classList.add('active'); document.querySelector('.status-btn.closed').classList.remove('active'); }
+    else if (manualStoreStatus === 'closed') { document.querySelector('.status-btn.open').classList.remove('active'); document.querySelector('.status-btn.closed').classList.add('active'); }
+    else {
+        if (hoursStatus.isOpen) { document.querySelector('.status-btn.open').classList.add('active'); document.querySelector('.status-btn.closed').classList.remove('active'); }
+        else { document.querySelector('.status-btn.open').classList.remove('active'); document.querySelector('.status-btn.closed').classList.add('active'); }
+    }
+    document.getElementById('profileAvatarInitials').textContent = initial;
+    document.getElementById('profileHeaderName').textContent = name;
+    const shopCats = vendorData.shopCategories || vendorData.categories || [];
+    document.getElementById('profileHeaderCuisine').textContent = shopCats.length ? shopCats.join(', ') : (vendorData.cuisine || 'Cuisine type');
+    document.getElementById('profileHeaderBadge').innerHTML = status === 'active' ? '<span class="badge badge-open">OPEN</span>' : status === 'pending' ? '<span class="badge badge-pending">PENDING</span>' : '<span class="badge badge-disabled">DISABLED</span>';
+    document.getElementById('profileVendorID').textContent = vendorData.vendorID || 'PENDING';
+    const addr = vendorData.address || {};
+    document.getElementById('storeInfoSnippet').innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
+            <i data-lucide="map-pin" style="width:15px;height:15px;color:var(--accent);flex-shrink:0;"></i>
+            <span style="font-size:0.85rem;color:var(--dim);">${[addr.suburb,addr.city].filter(Boolean).join(', ')||'Location not set'}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
+            <i data-lucide="clock" style="width:15px;height:15px;color:var(--accent);flex-shrink:0;"></i>
+            <span style="font-size:0.85rem;color:var(--dim);">${vendorData.openingTime||'—'} – ${vendorData.closingTime||'—'}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
+            <i data-lucide="phone" style="width:15px;height:15px;color:var(--accent);flex-shrink:0;"></i>
+            <span style="font-size:0.85rem;color:var(--dim);">${vendorData.phone||'Phone not set'}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;">
+            <i data-lucide="navigation" style="width:15px;height:15px;color:var(--accent);flex-shrink:0;"></i>
+            <span style="font-size:0.85rem;color:var(--dim);">Delivery radius: ${vendorData.deliveryRadius||'5'} km</span>
+        </div>`;
+    setTimeout(() => lucide.createIcons(), 50);
+}
+
+function updateDashboardStats() {
+    const items = Object.values(menuCache);
+    const orders = Object.values(ordersCache);
+    const pending = orders.filter(o => o.status === 'pending').length;
+    const revenue = orders.filter(o => o.status === 'delivered').reduce((s,o) => s + Number(o.total||0), 0);
+    const featuredCount = items.filter(v => v.featured === 'true' || v.featured === true).length;
+    document.getElementById('stat-menu').textContent = items.length;
+    document.getElementById('stat-featured').textContent = featuredCount;
+    document.getElementById('stat-orders').textContent = orders.length;
+    document.getElementById('stat-pending').textContent = pending;
+    document.getElementById('stat-revenue').textContent = 'R ' + revenue.toFixed(0);
+}
+function updateAnalyticsStats() {
+    const items = Object.values(menuCache);
+    const orders = Object.values(ordersCache);
+    const revenue = orders.filter(o=>o.status==='delivered').reduce((s,o)=>s+Number(o.total||0),0);
+    document.getElementById('ana-items').textContent = items.length;
+    document.getElementById('ana-orders').textContent = orders.length;
+    document.getElementById('ana-revenue').textContent = 'R ' + revenue.toFixed(0);
+}
+function renderAnalytics() { updateAnalyticsStats(); renderCategoryBreakdown(); renderOrdersChart(); renderPricingBreakdown(); }
+function renderCategoryBreakdown() {
+    const items = Object.values(menuCache);
+    const cats = {};
+    items.forEach(v => { const c = v.category||'Other'; cats[c]=(cats[c]||0)+1; });
+    const el = document.getElementById('categoryBreakdown');
+    if (!Object.keys(cats).length) { el.innerHTML='<p style="color:var(--dim);text-align:center;padding:20px;">No items yet</p>'; return; }
+    const total = items.length;
+    el.innerHTML = Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([cat,count]) => {
+        const pct = Math.round((count/total)*100);
+        return `<div style="margin-bottom:14px;"><div style="display:flex;justify-content:space-between;font-size:0.85rem;font-weight:600;margin-bottom:6px;"><span>${cat}</span><span>${count} item${count!==1?'s':''} (${pct}%)</span></div><div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--accent),#34d672);border-radius:4px;"></div></div></div>`;
+    }).join('');
+}
+function renderOrdersChart() {
+    const orders = Object.values(ordersCache);
+    const months = getLast6Months();
+    const counts = {};
+    months.forEach(m => counts[m]=0);
+    orders.forEach(o => { if(o.createdAt) { const k=new Date(o.createdAt).toLocaleDateString('en-ZA',{month:'short',year:'2-digit'}); if(k in counts) counts[k]++; } });
+    const vals = months.map(m=>counts[m]);
+    const maxV = Math.max(...vals,1);
+    document.getElementById('ordersChart').innerHTML = months.map((m,i) => {
+        const h = Math.max(Math.round((vals[i]/maxV)*170),vals[i]>0?8:4);
+        return `<div class="bar-wrapper"><div class="bar" style="height:${h}px;"><div class="bar-val">${vals[i]}</div></div><div class="bar-label">${m}</div></div>`;
+    }).join('');
+}
+function renderPricingBreakdown() {
+    const items = Object.values(menuCache);
+    const el = document.getElementById('pricingBreakdown');
+    if (!items.length) { el.innerHTML='<p style="color:var(--dim);text-align:center;padding:20px;">No items yet</p>'; return; }
+    const prices = items.map(v=>Number(v.price||0)).filter(p=>p>0);
+    if (!prices.length) { el.innerHTML='<p style="color:var(--dim);text-align:center;">No pricing data</p>'; return; }
+    const min=Math.min(...prices), max=Math.max(...prices), avg=prices.reduce((s,p)=>s+p,0)/prices.length;
+    const ranges={'Under R50':0,'R50–R100':0,'R100–R200':0,'Over R200':0};
+    prices.forEach(p=>{if(p<50)ranges['Under R50']++;else if(p<100)ranges['R50–R100']++;else if(p<200)ranges['R100–R200']++;else ranges['Over R200']++;});
+    el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;">
+        <div style="text-align:center;padding:16px;background:var(--bg);border-radius:12px;"><div style="font-size:1.5rem;font-weight:800;color:var(--accent);">${fmtCurrency(min)}</div><div style="font-size:0.78rem;color:var(--dim);font-weight:600;margin-top:4px;">Lowest</div></div>
+        <div style="text-align:center;padding:16px;background:var(--bg);border-radius:12px;"><div style="font-size:1.5rem;font-weight:800;color:var(--purple);">${fmtCurrency(avg)}</div><div style="font-size:0.78rem;color:var(--dim);font-weight:600;margin-top:4px;">Average</div></div>
+        <div style="text-align:center;padding:16px;background:var(--bg);border-radius:12px;"><div style="font-size:1.5rem;font-weight:800;">${fmtCurrency(max)}</div><div style="font-size:0.78rem;color:var(--dim);font-weight:600;margin-top:4px;">Highest</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">${Object.entries(ranges).map(([r,c])=>`<div style="padding:14px;background:var(--bg);border-radius:12px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:0.85rem;font-weight:600;">${r}</span><span style="font-weight:800;color:var(--accent);">${c} item${c!==1?'s':''}</span></div>`).join('')}</div>`;
+}
+function getLast6Months() {
+    const months=[], now=new Date();
+    for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push(d.toLocaleDateString('en-ZA',{month:'short',year:'2-digit'}));}
+    return months;
+}
+
+// ==================== MENU GRID ====================
+function renderMenuGrid() {
+    const grid = document.getElementById('menuGrid');
+    let items = Object.entries(menuCache).reverse();
+    if (menuFilter.search) { const s=menuFilter.search.toLowerCase(); items=items.filter(([,v])=>(v.name||'').toLowerCase().includes(s)||(v.description||'').toLowerCase().includes(s)); }
+    if (menuFilter.category) items=items.filter(([,v])=>v.category===menuFilter.category);
+    if (!items.length) {
+        grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1;"><i data-lucide="package" style="width:44px;height:44px;display:block;margin:0 auto 12px;opacity:.4;"></i><p style="font-weight:600;margin-bottom:4px;">No menu items yet</p><p style="font-size:0.85rem;">Add your first item to get started</p><button class="btn-primary" style="margin:16px auto 0;display:flex;" onclick="openAddItemModal()"><i data-lucide="plus" style="width:16px;height:16px;"></i> Add First Item</button></div>`;
+        lucide.createIcons(); return;
+    }
+    grid.innerHTML = items.map(([key,v]) => {
+        const statusColors={available:{bg:'var(--accent-light)',color:'var(--accent-dark)',text:'Available'},unavailable:{bg:'#fff5cc',color:'#997300',text:'Unavailable'},sold_out:{bg:'#fff1f0',color:'var(--danger)',text:'Sold Out'}};
+        const sc=statusColors[v.status||'available']||statusColors.available;
+        const imgApproved = v.imageApproved === true;
+        const isDeclined = v.imageDeclineReason && !imgApproved;
+        const imgEl = v.imageURL
+            ? (imgApproved
+                ? `<img src="${v.imageURL}" class="menu-item-img" alt="${v.name}" loading="lazy">`
+                : `<div class="menu-item-img-placeholder" style="position:relative;"><i data-lucide="image" style="width:36px;height:36px;opacity:0.3;"></i><div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#fff5cc;border:1px solid #ffe066;color:#997300;border-radius:8px;padding:3px 10px;font-size:0.68rem;font-weight:700;">⏳ Awaiting Approval</div></div>`)
+            : `<div class="menu-item-img-placeholder"><i data-lucide="image" style="width:36px;height:36px;"></i></div>`;
+        const isFeat=v.featured===true||v.featured==='true';
+        const declineInfo = isDeclined ? `<div class="img-pending-badge" style="background:#fff1f0;border-color:var(--danger);color:var(--danger);margin-top:6px;cursor:pointer;" onclick="showDeclineReasonModal('${key}')">
+            <i data-lucide="alert-triangle" style="width:12px;height:12px;"></i> Image Declined – Click for reason
+        </div>` : '';
+        return `<div class="menu-item-card"><div style="position:relative;">${imgEl}<div class="menu-item-actions"><button class="icon-btn icon-btn-edit" onclick="openEditItemModal('${key}')"><i data-lucide="edit-2" style="width:13px;height:13px;"></i></button><button class="icon-btn icon-btn-delete" onclick="openDeleteModal('${key}','${(v.name||'').replace(/'/g,"\\'")}')"><i data-lucide="trash-2" style="width:13px;height:13px;"></i></button></div><div class="menu-item-badge"><span style="background:${sc.bg};color:${sc.color};border:1px solid ${sc.color};border-radius:10px;font-size:0.68rem;font-weight:700;padding:3px 8px;">${sc.text}</span>${isFeat?'<span style="background:var(--yellow);color:#5a3e00;border-radius:10px;font-size:0.68rem;font-weight:700;padding:3px 8px;margin-left:4px;">⭐ Featured</span>':''}</div></div><div class="menu-item-body"><div class="menu-item-name">${v.name||'Unnamed Item'}</div><div style="font-size:0.72rem;color:var(--accent-dark);font-weight:600;margin-bottom:4px;">${v.category||''}</div><div class="menu-item-desc">${v.description||''}</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;"><div class="menu-item-price">${fmtCurrency(v.price)}</div>${v.prepTime?`<div style="font-size:0.76rem;color:var(--dim);display:flex;align-items:center;gap:3px;"><i data-lucide="clock" style="width:12px;height:12px;"></i> ${v.prepTime} min</div>`:''}</div>${v.allergens?`<div style="margin-top:6px;font-size:0.72rem;color:var(--dim);"><span style="font-weight:700;">⚠ Allergens:</span> ${v.allergens}</div>`:''}${declineInfo}</div></div>`;
+    }).join('');
+    lucide.createIcons();
+}
+let menuFilter = { search:'', category:'' };
+function filterMenuItems(search) { menuFilter.search=search; menuFilter.category=document.getElementById('menuCatFilter').value; renderMenuGrid(); }
+
+// Show decline reason modal when vendor clicks on the decline badge
+function showDeclineReasonModal(itemKey) {
+    const item = menuCache[itemKey];
+    if (item && item.imageDeclineReason) {
+        document.getElementById('declineReasonDisplay').innerHTML = `
+            <strong>${item.name || 'Item'}</strong><br>
+            Reason: ${item.imageDeclineReason}<br>
+            Please upload a new image that meets the guidelines.
+        `;
+        showModal('imageDeclinedModal');
+    } else {
+        showToast('No decline reason found for this item.', 'info');
+    }
+}
+
+function renderFeaturedItems() {
+    const items=Object.entries(menuCache);
+    const featuredItems=items.filter(([,v])=>v.featured===true||v.featured==='true');
+    const count=featuredItems.length;
+    document.getElementById('featuredCount').textContent=count;
+    const listEl=document.getElementById('featuredItemsList');
+    if(!count){listEl.innerHTML='<div style="color:var(--dim);text-align:center;padding:20px;font-size:0.88rem;">No featured items yet.</div>';}
+    else{listEl.innerHTML=featuredItems.map(([key,v])=>`<div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--bg);border-radius:12px;margin-bottom:8px;">${v.imageURL&&v.imageApproved?`<img src="${v.imageURL}" style="width:44px;height:44px;object-fit:cover;border-radius:10px;flex-shrink:0;">`:`<div style="width:44px;height:44px;background:var(--accent-light);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i data-lucide="image" style="width:18px;height:18px;color:var(--accent);"></i></div>`}<div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:0.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.name}</div><div style="font-size:0.76rem;color:var(--accent-dark);font-weight:600;">${fmtCurrency(v.price)}</div></div><button class="btn btn-danger" style="padding:5px 12px;font-size:0.76rem;" onclick="toggleFeatured('${key}',false)"><i data-lucide="x" style="width:12px;height:12px;"></i> Remove</button></div>`).join('');}
+    const toggleEl=document.getElementById('featuredToggleList');
+    if(!items.length){toggleEl.innerHTML='<div style="color:var(--dim);text-align:center;padding:20px;font-size:0.88rem;">No items in menu yet.</div>';}
+    else{toggleEl.innerHTML=items.map(([key,v])=>{const isFeat=v.featured===true||v.featured==='true';return`<div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;margin-bottom:6px;background:${isFeat?'var(--accent-light)':''};border:1px solid ${isFeat?'var(--accent)':'var(--border)'};"><div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:0.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.name||'Unnamed'}</div><div style="font-size:0.74rem;color:var(--dim);">${v.category||''} · ${fmtCurrency(v.price)}</div></div><div class="toggle ${isFeat?'on':''}" onclick="toggleFeatured('${key}',${!isFeat})" style="flex-shrink:0;"></div></div>`;}).join('');}
+    const previewEl=document.getElementById('featuredPreviewCards');
+    if(!count){previewEl.innerHTML='<div style="color:rgba(255,255,255,0.4);font-size:0.88rem;padding:20px;">No featured items to preview</div>';}
+    else{previewEl.innerHTML=featuredItems.map(([key,v])=>`<div style="flex-shrink:0;width:140px;background:rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);">${v.imageURL&&v.imageApproved?`<img src="${v.imageURL}" style="width:100%;height:90px;object-fit:cover;">`:`<div style="width:100%;height:90px;background:rgba(6,193,103,0.2);display:flex;align-items:center;justify-content:center;"><i data-lucide="star" style="width:28px;height:28px;color:var(--accent);"></i></div>`}<div style="padding:10px;"><div style="font-size:0.8rem;font-weight:700;color:white;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${v.name}</div><div style="font-size:0.78rem;color:var(--accent);font-weight:700;margin-top:2px;">${fmtCurrency(v.price)}</div></div></div>`).join('');}
+    setTimeout(()=>lucide.createIcons(),50);
+    syncFeaturedToGlobal();
+}
+function toggleFeatured(key,featVal) {
+    if(!VENDOR_KEY)return;
+    db.ref(`vendors/${VENDOR_KEY}/menu/${key}`).update({featured:featVal,updatedAt:Date.now()}).then(()=>showToast(featVal?'Item added to featured!':'Item removed from featured','success')).catch(()=>showToast('Error updating featured','error'));
+}
+function syncFeaturedToGlobal() {
+    if(!VENDOR_KEY||!vendorData)return;
+    const featured=Object.entries(menuCache)
+        .filter(([,v])=>(v.featured===true||v.featured==='true') && v.imageApproved===true)
+        .reduce((obj,[k,v])=>{obj[k]={name:v.name,category:v.category,price:v.price,description:v.description,imageURL:v.imageURL||'',vendorKey:VENDOR_KEY,vendorName:vendorData.name||'',status:v.status,updatedAt:Date.now()};return obj;},{});
+    db.ref(`featured_items/${VENDOR_KEY}`).set(Object.keys(featured).length?featured:null);
+}
+
+// ==================== ORDERS ====================
+function renderOrders() {
+    const container=document.getElementById('ordersContainer');
+    const filter=document.getElementById('orderFilter')?.value||'all';
+    let orders=Object.entries(ordersCache).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
+    if(filter!=='all')orders=orders.filter(([,o])=>o.status===filter);
+    if(!orders.length){container.innerHTML=`<div class="empty-state"><i data-lucide="shopping-bag" style="width:48px;height:48px;display:block;margin:0 auto 12px;opacity:.4;"></i>No ${filter!=='all'?filter+' ':''}orders found</div>`;lucide.createIcons();return;}
+    const statusColors={pending:{bg:'#fff5cc',color:'#997300',text:'Pending'},accepted:{bg:'#e8f0ff',color:'var(--purple)',text:'Accepted'},preparing:{bg:'#fff0d4',color:'#c46b00',text:'Preparing'},ready:{bg:'var(--accent-light)',color:'var(--accent-dark)',text:'Ready'},delivered:{bg:'var(--accent-light)',color:'var(--accent-dark)',text:'Delivered'},cancelled:{bg:'#fff1f0',color:'var(--danger)',text:'Cancelled'},assigned:{bg:'#e0f2fe',color:'#0369a1',text:'Assigned'}};
+    container.innerHTML=orders.map(([key,o])=>{
+        const sc=statusColors[o.status]||statusColors.pending;
+        const customer=o.customer||o.user||{};
+        const customerName=customer.name||customer.displayName||o.customerName||o.userName||'Customer';
+        const customerEmail=customer.email||o.customerEmail||o.email||'';
+        const customerPhone=customer.phone||o.customerPhone||'';
+        const customerInitial=customerName.charAt(0).toUpperCase();
+        const orderItems=o.items?Object.values(o.items):[];
+        let itemsHTML='';
+        if(orderItems.length){
+            const chips=orderItems.map(item=>{
+                const menuMatch=Object.values(menuCache).find(m=>m.name===item.name);
+                const imgURL=(menuMatch&&menuMatch.imageApproved&&menuMatch.imageURL)?menuMatch.imageURL:(item.imageURL||'');
+                const qty=item.quantity||item.qty||1;
+                const imgEl=imgURL?`<img src="${imgURL}" class="order-item-chip-img" alt="${item.name||''}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'' ;
+                const placeholderEl=`<div class="order-item-chip-placeholder" ${imgURL?'style="display:none;"':''}>🍽</div>`;
+                return`<div class="order-item-chip">${imgEl}${placeholderEl}<div class="order-item-chip-info"><span class="order-item-chip-name">${item.name||'Item'}</span><span class="order-item-chip-qty">×${qty}</span></div></div>`;
+            }).join('');
+            itemsHTML=`<div class="order-items-strip">${chips}</div>`;
+        }
+        const customerBar=`<div class="order-customer-bar">
+            <div class="order-customer-avatar">${customerInitial}</div>
+            <div class="order-customer-details">
+                <span class="order-customer-name">👤 ${customerName}</span>
+                ${customerEmail?`<span class="order-customer-id">📧 ${customerEmail}</span>`:''}
+                ${customerPhone?`<span style="font-size:0.72rem;color:var(--dim);font-weight:600;">📞 ${customerPhone}</span>`:''}
+            </div>
+        </div>`;
+        // ADDRESS DISPLAY (vendor sees full delivery address)
+        const deliveryAddr = o.deliveryAddress || o.address || (o.customer && o.customer.address) || null;
+        const addressHtml = deliveryAddr ? `
+            <div class="order-address">
+                <i data-lucide="map-pin" style="width:14px;height:14px;"></i> 
+                <span>${deliveryAddr}</span>
+            </div>
+        ` : '';
+        const driverBanner = o.driverKey
+            ? `<div style="margin-top:10px;padding:8px 14px;background:linear-gradient(90deg,var(--accent-light),#f0fdf4);border:1px solid var(--accent);border-radius:10px;display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:700;color:var(--accent-dark);">
+                <i data-lucide="bike" style="width:16px;height:16px;flex-shrink:0;"></i> Assigned to: ${o.driverName||'Driver'}
+               </div>`
+            : '';
+        return`<div class="order-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span style="font-weight:800;font-size:0.95rem;">Order #${o.orderNumber||key.slice(-6).toUpperCase()}</span>
+                        <span style="background:${sc.bg};color:${sc.color};border-radius:10px;font-size:0.72rem;font-weight:700;padding:4px 10px;">${sc.text}</span>
+                    </div>
+                    <div style="color:var(--dim);font-size:0.78rem;margin-top:2px;">${fmtDate(o.createdAt)} at ${fmtTime(o.createdAt)}</div>
+                    ${customerBar}
+                    ${addressHtml}
+                    ${itemsHTML}
+                    ${driverBanner}
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                    <div style="font-weight:800;font-size:1.1rem;color:var(--accent);">${fmtCurrency(o.total)}</div>
+                    ${orderItems.length?`<div style="font-size:0.76rem;color:var(--dim);margin-top:2px;">${orderItems.length} item${orderItems.length!==1?'s':''}</div>`:''}
+                    <button class="icon-btn icon-btn-delete" onclick="openDeleteOrderModal('${key}','${o.orderNumber||key.slice(-6).toUpperCase()}')" style="margin-top:8px;width:auto;padding:5px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;"><i data-lucide="trash-2" style="width:12px;height:12px;"></i> Delete</button>
+                </div>
+            </div>
+            ${o.status==='pending'?`<div style="margin-top:12px;display:flex;gap:8px;"><button class="btn btn-success" onclick="updateOrderStatus('${key}','preparing')"><i data-lucide="chef-hat" style="width:13px;height:13px;"></i> Accept & Prepare</button><button class="btn btn-danger" onclick="updateOrderStatus('${key}','cancelled')"><i data-lucide="x" style="width:13px;height:13px;"></i> Decline</button></div>`:''}
+            ${o.status==='preparing'?`<div style="margin-top:12px;"><button class="btn btn-success" onclick="updateOrderStatus('${key}','ready')"><i data-lucide="check-circle" style="width:13px;height:13px;"></i> Mark as Ready</button></div>`:''}
+            ${o.status==='ready'?`<div style="margin-top:12px;"><button class="btn-primary" onclick="openAssignDriverModal('${key}')"><i data-lucide="bike" style="width:13px;height:13px;"></i> Assign Driver</button></div>`:''}
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+}
+
+function renderRecentOrders() {
+    const container=document.getElementById('recentOrdersList');
+    const recent=Object.entries(ordersCache).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0)).slice(0,5);
+    if(!recent.length){container.innerHTML=`<div class="empty-state"><i data-lucide="shopping-bag" style="width:40px;height:40px;display:block;margin:0 auto 12px;opacity:.4;"></i><p style="font-weight:600;margin-bottom:4px;">No orders yet</p></div>`;lucide.createIcons();return;}
+    const statusColors={pending:'#f5a623',accepted:'var(--purple)',preparing:'var(--warning)',ready:'var(--accent)',delivered:'var(--accent)',cancelled:'var(--danger)'};
+    container.innerHTML=recent.map(([key,o])=>{
+        const customer=o.customer||o.user||{};
+        const customerName=customer.name||customer.displayName||o.customerName||'Customer';
+        return`<div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;"><div style="display:flex;align-items:center;gap:10px;"><div style="width:8px;height:8px;border-radius:50%;background:${statusColors[o.status]||'var(--dim)'};flex-shrink:0;"></div><div><div style="font-weight:700;font-size:0.88rem;">Order #${o.orderNumber||key.slice(-6).toUpperCase()}</div><div style="color:var(--dim);font-size:0.76rem;">${customerName} · ${fmtTime(o.createdAt)}</div></div></div><div style="font-weight:700;color:var(--accent);font-size:0.9rem;">${fmtCurrency(o.total)}</div></div>`;
+    }).join('');
+}
+function updateOrderStatus(key,newStatus) {
+    db.ref('orders/'+key).update({status:newStatus,updatedAt:Date.now()}).then(()=>showToast(`Order status updated to ${newStatus}`,'success')).catch(()=>showToast('Error updating order','error'));
+}
+
+// ==================== ASSIGN DRIVER MODAL ====================
+function openAssignDriverModal(orderKey) {
+    document.getElementById('assign-order-key').value = orderKey;
+    const driversList = document.getElementById('driversList');
+    if (!approvedDrivers || approvedDrivers.length === 0) {
+        driversList.innerHTML = `
+            <div style="text-align:center;padding:32px 20px;color:var(--dim);">
+                <i data-lucide="bike" style="width:40px;height:40px;display:block;margin:0 auto 12px;opacity:0.3;"></i>
+                <div style="font-weight:700;margin-bottom:4px;">No drivers available</div>
+                <div style="font-size:0.82rem;">No admin-approved drivers found. Drivers must be approved by admin before appearing here.</div>
+            </div>`;
+        lucide.createIcons();
+    } else {
+        driversList.innerHTML = approvedDrivers.map(driver => {
+            const initial   = (driver.name || 'D').charAt(0).toUpperCase();
+            const isOnline  = driver.onlineStatus === 'online';
+            const isBusy    = driver.onlineStatus === 'busy';
+            const dotStyle  = isOnline
+                ? 'background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,0.2);'
+                : isBusy
+                    ? 'background:var(--warning);box-shadow:0 0 0 3px rgba(255,149,0,0.2);'
+                    : 'background:#cbd5e1;';
+            const statusLbl = isOnline ? 'Online' : isBusy ? 'On Delivery' : 'Active';
+            const statusClr = isOnline ? 'var(--accent-dark)' : isBusy ? 'var(--warning)' : 'var(--dim)';
+            const vEmoji    = driver.vehicle === 'bicycle' ? '🚲' : driver.vehicle === 'car' ? '🚗' : '🛵';
+            const safeName  = (driver.name || '').replace(/'/g, "\\'");
+            const metaParts = [driver.vehicle, driver.plate, driver.phone].filter(Boolean);
+            return `
+                <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid var(--border);border-radius:14px;margin-bottom:8px;transition:var(--transition);"
+                     onmouseover="this.style.borderColor='var(--accent)';this.style.background='var(--accent-light)'"
+                     onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
+                    <div style="position:relative;flex-shrink:0;">
+                        <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:1.1rem;">${initial}</div>
+                        <div style="position:absolute;bottom:-2px;right:-2px;width:12px;height:12px;border-radius:50%;border:2px solid white;${dotStyle}"></div>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:700;font-size:0.95rem;">${driver.name}</div>
+                        <div style="font-size:0.78rem;color:var(--dim);margin-top:2px;">${vEmoji} ${metaParts.join(' · ')}</div>
+                        <div style="font-size:0.7rem;margin-top:3px;font-weight:700;color:${statusClr};">${statusLbl}</div>
+                    </div>
+                    <button class="btn btn-success" style="padding:8px 16px;flex-shrink:0;"
+                        onclick="assignDriverToOrder('${orderKey}','${driver.key}','${safeName}')">
+                        <i data-lucide="check" style="width:13px;height:13px;"></i> Assign
+                    </button>
+                </div>`;
+        }).join('');
+        lucide.createIcons();
+    }
+    showModal('assignDriverModal');
+}
+
+function assignDriverToOrder(orderKey, driverKey, driverName) {
+    db.ref('orders/' + orderKey).update({
+        driverKey,
+        driverName,
+        status: 'assigned',
+        updatedAt: Date.now()
+    }).then(() => {
+        showToast(`Order assigned to ${driverName}`, 'success');
+        hideModal('assignDriverModal');
+    }).catch(() => showToast('Assignment failed', 'error'));
+}
+
+// ==================== DELETE ORDER ====================
+function openDeleteOrderModal(key, orderNumber) {
+    document.getElementById('del-order-key').value = key;
+    document.getElementById('del-order-number').textContent = orderNumber;
+    showModal('deleteOrderModal');
+}
+function confirmDeleteOrder() {
+    const key = document.getElementById('del-order-key').value;
+    if (!key) return;
+    db.ref('orders/' + key).remove()
+        .then(() => { showToast('Order deleted successfully', 'success'); hideModal('deleteOrderModal'); })
+        .catch(err => showToast('Error deleting order: ' + err.message, 'error'));
+}
+
+// ==================== MENU ITEM MODAL ====================
+function openAddItemModal() {
+    document.getElementById('item-key').value='';
+    document.getElementById('item-name').value='';
+    document.getElementById('item-category').selectedIndex=0;
+    document.getElementById('item-desc').value='';
+    document.getElementById('item-price').value='';
+    document.getElementById('item-preptime').value='';
+    document.getElementById('item-calories').value='';
+    document.getElementById('item-allergens').value='';
+    document.getElementById('item-image').value='';
+    document.getElementById('item-status').value='available';
+    document.getElementById('item-featured').value='false';
+    document.getElementById('item-img-preview-wrap').style.display='none';
+    document.getElementById('uploadProgressWrap').style.display='none';
+    document.getElementById('itemModalTitle').innerHTML='<i data-lucide="package" style="width:22px;height:22px;color:var(--accent);"></i> Add Menu Item';
+    document.getElementById('itemSaveLabel').textContent='Add Item';
+    showModal('itemModal');
+}
+function openEditItemModal(key) {
+    const v=menuCache[key]; if(!v)return;
+    document.getElementById('item-key').value=key;
+    document.getElementById('item-name').value=v.name||'';
+    document.getElementById('item-category').value=v.category||'';
+    document.getElementById('item-desc').value=v.description||'';
+    document.getElementById('item-price').value=v.price||'';
+    document.getElementById('item-preptime').value=v.prepTime||'';
+    document.getElementById('item-calories').value=v.calories||'';
+    document.getElementById('item-allergens').value=v.allergens||'';
+    document.getElementById('item-image').value='';
+    document.getElementById('item-status').value=v.status||'available';
+    document.getElementById('item-featured').value=String(v.featured||'false');
+    document.getElementById('itemModalTitle').innerHTML='<i data-lucide="edit-2" style="width:22px;height:22px;color:var(--accent);"></i> Edit Menu Item';
+    document.getElementById('itemSaveLabel').textContent='Save Changes';
+    document.getElementById('uploadProgressWrap').style.display='none';
+    const previewWrap=document.getElementById('item-img-preview-wrap');
+    if(v.imageURL){document.getElementById('item-img-preview').src=v.imageURL;previewWrap.style.display='block';}
+    else previewWrap.style.display='none';
+    showModal('itemModal');
+}
+
+async function saveMenuItem() {
+    if(!VENDOR_KEY){showToast('No vendor loaded','error');return;}
+    const key=document.getElementById('item-key').value;
+    const name=document.getElementById('item-name').value.trim();
+    const category=document.getElementById('item-category').value;
+    const price=parseFloat(document.getElementById('item-price').value);
+    if(!name){showToast('Item name is required','error');return;}
+    if(!category){showToast('Please select a category','error');return;}
+    if(!price||price<=0){showToast('Please enter a valid price','error');return;}
+    const file=document.getElementById('item-image').files[0];
+    const existingImageURL = key ? (menuCache[key]?.imageURL||'') : '';
+    const existingApproved = key ? (menuCache[key]?.imageApproved||false) : false;
+    if(!key && !file){
+        showToast('An image is required for new menu items','error');
+        document.getElementById('item-image').style.borderColor='var(--danger)';
+        setTimeout(()=>document.getElementById('item-image').style.borderColor='',2000);
+        return;
+    }
+    let imageURL = existingImageURL;
+    let imageApproved = existingApproved;
+    if(file) {
+        const progressWrap=document.getElementById('uploadProgressWrap');
+        const progressFill=document.getElementById('uploadProgressFill');
+        const progressText=document.getElementById('uploadProgressText');
+        progressWrap.style.display='block';
+        progressFill.style.width='0%';
+        progressText.textContent='0%';
+        showToast('Uploading image…','info');
+        try {
+            imageURL = await uploadToCloudinary(file, (pct) => {
+                progressFill.style.width = pct + '%';
+                progressText.textContent = pct + '%';
+            });
+            progressFill.style.width='100%';
+            progressText.textContent='100%';
+            showToast('Image uploaded — awaiting admin approval','info');
+            setTimeout(()=>{progressWrap.style.display='none';},1200);
+            imageApproved = false;
+        } catch(error) {
+            showToast('Image upload failed: '+error.message,'error');
+            progressWrap.style.display='none';
+            return;
+        }
+    }
+    const featuredVal=document.getElementById('item-featured').value;
+    const data={
+        name, category,
+        description:document.getElementById('item-desc').value.trim(),
+        price,
+        prepTime:document.getElementById('item-preptime').value||'',
+        calories:document.getElementById('item-calories').value||'',
+        allergens:document.getElementById('item-allergens').value.trim(),
+        status:document.getElementById('item-status').value,
+        featured:featuredVal==='true',
+        imageURL, imageApproved,
+        updatedAt:Date.now(),
+        vendorKey:VENDOR_KEY,
+        vendorName:vendorData?.name||''
+    };
+    const dbRef=key
+        ? db.ref(`vendors/${VENDOR_KEY}/menu/${key}`).update(data)
+        : db.ref(`vendors/${VENDOR_KEY}/menu`).push({...data,createdAt:Date.now()});
+    dbRef.then(()=>{
+        const msg = file
+            ? `"${name}" saved! Image awaiting admin approval.`
+            : (key?`"${name}" updated!`:`"${name}" added to menu!`);
+        showToast(msg,'success');
+        hideModal('itemModal');
+        syncFeaturedToGlobal();
+    }).catch((error)=>{showToast('Error saving item: '+error.message,'error');});
+}
+
+function openDeleteModal(key,name) {
+    document.getElementById('del-key').value=key;
+    document.getElementById('del-name').textContent=`"${name}"`;
+    showModal('deleteModal');
+}
+async function confirmDelete() {
+    const key=document.getElementById('del-key').value;
+    if(!VENDOR_KEY||!key)return;
+    db.ref(`vendors/${VENDOR_KEY}/menu/${key}`).remove().then(()=>{showToast('Item deleted','success');hideModal('deleteModal');syncFeaturedToGlobal();}).catch(()=>showToast('Error deleting item','error'));
+}
+
+// ==================== STORE PROFILE ====================
+function populateProfileForm() {
+    if(!vendorData)return;
+    const addr=vendorData.address||{};
+    const fields={'p-name':vendorData.name,'p-tradename':vendorData.tradingName,'p-cuisine-cat':vendorData.cuisineCategory,'p-cuisine':vendorData.cuisine,'p-regno':vendorData.businessRegNo,'p-vat':vendorData.vatNumber,'p-owner':vendorData.ownerName,'p-phone':vendorData.phone,'p-email':vendorData.email,'p-whatsapp':vendorData.whatsapp,'p-website':vendorData.website,'p-street':addr.street,'p-suburb':addr.suburb,'p-city':addr.city,'p-province':addr.province,'p-postal':addr.postalCode,'p-radius':vendorData.deliveryRadius||'5','p-minorder':vendorData.minOrderValue||vendorData.minOrder,'p-open':vendorData.openingTime||'08:00','p-close':vendorData.closingTime||'22:00','p-preptime':vendorData.avgPrepTime,'p-lat':vendorData.lat||'','p-lng':vendorData.lng||''};
+    Object.entries(fields).forEach(([id,val])=>{const el=document.getElementById(id);if(el&&val!==undefined&&val!==null)el.value=val;});
+    const savedDays=Array.isArray(vendorData.operatingDays)?vendorData.operatingDays:[];
+    document.querySelectorAll('#p-days input[type=checkbox]').forEach(cb=>{cb.checked=savedDays.includes(cb.value);cb.closest('label').classList.toggle('checked',cb.checked);});
+    const savedCats=Array.isArray(vendorData.shopCategories)?vendorData.shopCategories:(Array.isArray(vendorData.categories)?vendorData.categories:[]);
+    document.querySelectorAll('#p-shop-categories input[type="checkbox"]').forEach(cb=>{cb.checked=savedCats.includes(cb.value);cb.closest('label').classList.toggle('checked',cb.checked);});
+    const savedRadius=parseInt(vendorData.deliveryRadius||'5');
+    selectInlineRadius(savedRadius);
+}
+function togglePDay(cb) { cb.closest('label').classList.toggle('checked',cb.checked); }
+function saveStoreProfile() {
+    if(!VENDOR_KEY){showToast('No vendor loaded','error');return;}
+    const name=document.getElementById('p-name').value.trim();
+    if(!name){showToast('Business name is required','error');return;}
+    const days=Array.from(document.querySelectorAll('#p-days input[type=checkbox]:checked')).map(c=>c.value);
+    const shopCategories=Array.from(document.querySelectorAll('#p-shop-categories input[type="checkbox"]:checked')).map(c=>c.value);
+    const upd={name,tradingName:document.getElementById('p-tradename').value.trim(),cuisineCategory:document.getElementById('p-cuisine-cat').value,cuisine:document.getElementById('p-cuisine').value.trim()||document.getElementById('p-cuisine-cat').value,businessRegNo:document.getElementById('p-regno').value.trim(),vatNumber:document.getElementById('p-vat').value.trim(),ownerName:document.getElementById('p-owner').value.trim(),phone:document.getElementById('p-phone').value.trim(),email:document.getElementById('p-email').value.trim(),whatsapp:document.getElementById('p-whatsapp').value.trim(),website:document.getElementById('p-website').value.trim(),address:{street:document.getElementById('p-street').value.trim(),suburb:document.getElementById('p-suburb').value.trim(),city:document.getElementById('p-city').value.trim(),province:document.getElementById('p-province').value,postalCode:document.getElementById('p-postal').value.trim()},lat:document.getElementById('p-lat').value?parseFloat(document.getElementById('p-lat').value):null,lng:document.getElementById('p-lng').value?parseFloat(document.getElementById('p-lng').value):null,deliveryRadius:document.getElementById('p-radius').value,minOrderValue:document.getElementById('p-minorder').value,openingTime:document.getElementById('p-open').value,closingTime:document.getElementById('p-close').value,avgPrepTime:document.getElementById('p-preptime').value,operatingDays:days,shopCategories,updatedAt:Date.now()};
+    db.ref('vendors/'+VENDOR_KEY).update(upd).then(()=>showToast(`Profile updated for "${name}" with ${shopCategories.length} categories`,'success')).catch(()=>showToast('Error saving profile','error'));
+}
+
+// ==================== INLINE LOCATION PICKER ====================
+function toggleInlineLocationPicker() {
+    const picker = document.getElementById('inlineLocationPicker');
+    const isOpen = picker.classList.contains('open');
+    if (isOpen) {
+        picker.classList.remove('open');
+        document.getElementById('setLocationBtn').innerHTML = '<i data-lucide="map" style="width:18px;height:18px;"></i> 📍 Set Store Location';
+    } else {
+        picker.classList.add('open');
+        document.getElementById('setLocationBtn').innerHTML = '<i data-lucide="x" style="width:18px;height:18px;"></i> Close Location Picker';
+        document.getElementById('inlineLocationInput').focus();
+        const currentRadius = parseInt(document.getElementById('p-radius').value) || 5;
+        selectInlineRadius(currentRadius);
+    }
+    lucide.createIcons();
+}
+function selectInlineRadius(radius) {
+    inlineSelectedRadius = radius;
+    document.querySelectorAll('#inlineRadiusGrid .picker-radius-opt').forEach(opt => { opt.classList.toggle('selected', parseInt(opt.dataset.value) === radius); });
+    document.getElementById('p-radius').value = radius;
+}
+function detectCurrentLocationInline() {
+    if (!navigator.geolocation) { showToast('Geolocation not supported','error'); return; }
+    const btn = document.getElementById('useCurrentLocationBtn');
+    const origHTML = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="loader-2" style="width:16px;height:16px;animation:spin 1s linear infinite;"></i> Locating…';
+    lucide.createIcons();
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const { latitude, longitude } = position.coords;
+            try {
+                const res = await fetch(`https://api.mapbox.com/search/geocode/v6/reverse?longitude=${longitude}&latitude=${latitude}&access_token=${MAPBOX_TOKEN}&limit=1`);
+                const data = await res.json();
+                let address = 'Current Location';
+                if (data.features && data.features.length > 0) address = data.features[0].properties?.full_address || data.features[0].properties?.name || 'Current Location';
+                fillLocationFields(latitude, longitude, address);
+                toggleInlineLocationPicker();
+                showToast('Location set successfully!', 'success');
+            } catch(e) { showToast('Failed to get address','error'); }
+            finally { btn.innerHTML = origHTML; lucide.createIcons(); }
+        },
+        (error) => {
+            btn.innerHTML = origHTML; lucide.createIcons();
+            showToast(error.code === error.PERMISSION_DENIED ? 'Location permission denied' : 'Unable to get location', 'error');
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+}
+function fillLocationFields(lat, lng, address) {
+    document.getElementById('p-lat').value = lat;
+    document.getElementById('p-lng').value = lng;
+    const parts = address.split(',').map(s => s.trim());
+    if (parts.length >= 1) document.getElementById('p-street').value = parts[0];
+    if (parts.length >= 2) document.getElementById('p-suburb').value = parts[1];
+    if (parts.length >= 3) document.getElementById('p-city').value = parts[2];
+    if (parts.length >= 4) { const provinceStr = parts[3].replace(/\d{4,}/g,'').trim(); document.getElementById('p-province').value = provinceStr || ''; }
+    if (parts.length >= 4) { const postalMatch = parts[parts.length-1].match(/\d{4}/); if (postalMatch) document.getElementById('p-postal').value = postalMatch[0]; }
+}
+let inlineDebounceTimer;
+document.getElementById('inlineLocationInput')?.addEventListener('input', (e) => {
+    clearTimeout(inlineDebounceTimer);
+    const query = e.target.value;
+    if (query.length < 3) { document.getElementById('inlineLocationSuggestions').innerHTML = ''; return; }
+    inlineDebounceTimer = setTimeout(() => fetchInlineSuggestions(query), 300);
+});
+async function fetchInlineSuggestions(query) {
+    try {
+        const res = await fetch(`https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(query)}&access_token=${MAPBOX_TOKEN}&autocomplete=true&limit=5`);
+        const data = await res.json();
+        displayInlineSuggestions(data.features || []);
+    } catch(e) { console.error('Geocoding error:', e); }
+}
+function displayInlineSuggestions(suggestions) {
+    const container = document.getElementById('inlineLocationSuggestions');
+    if (!suggestions.length) { container.innerHTML = ''; return; }
+    container.innerHTML = suggestions.map(feature => {
+        const address = feature.properties?.full_address || feature.properties?.name || 'Unknown';
+        const [lng, lat] = feature.geometry.coordinates;
+        return `<div class="picker-suggestion-item" onclick="selectInlineLocation(${lat}, ${lng}, '${address.replace(/'/g,"\\'")}')"><i data-lucide="map-pin" style="width:16px;height:16px;"></i><span>${address}</span></div>`;
+    }).join('');
+    lucide.createIcons();
+}
+function selectInlineLocation(lat, lng, address) {
+    fillLocationFields(lat, lng, address);
+    document.getElementById('inlineLocationSuggestions').innerHTML = '';
+    document.getElementById('inlineLocationInput').value = '';
+    toggleInlineLocationPicker();
+    showToast(`Location set: ${address.split(',')[0]}`, 'success');
+}
+
+// ==================== SETTINGS ====================
+const defaultSettings={storeOpen:true,onlineOrders:true,deliveryAvailable:true,takeawayAvailable:true,orderAlerts:true,smsNotifs:false};
+const toggleMap={storeOpen:'tog-open',onlineOrders:'tog-online',deliveryAvailable:'tog-delivery',takeawayAvailable:'tog-takeaway',orderAlerts:'tog-alerts',smsNotifs:'tog-sms'};
+let settingsState={};
+function loadSettings() {
+    const saved=JSON.parse(localStorage.getItem('vynix_vendor_settings')||'{}');
+    Object.assign(settingsState,defaultSettings,saved);
+    Object.entries(toggleMap).forEach(([k,id])=>{const el=document.getElementById(id);if(el)el.classList.toggle('on',!!settingsState[k]);});
+}
+function toggleSetting(el,key){el.classList.toggle('on');settingsState[key]=el.classList.contains('on');}
+function saveSettings() {
+    localStorage.setItem('vynix_vendor_settings', JSON.stringify(settingsState));
+    if (VENDOR_KEY) {
+        Promise.all([
+            db.ref('vendors/' + VENDOR_KEY).update({ manualStoreStatus: (!settingsState.storeOpen) ? 'closed' : 'open', updatedAt: Date.now() }),
+            db.ref('vendors/' + VENDOR_KEY + '/settings').update({ storeOpen: settingsState.storeOpen, onlineOrders: settingsState.onlineOrders, deliveryAvailable: settingsState.deliveryAvailable, takeawayAvailable: settingsState.takeawayAvailable, updatedAt: Date.now() }),
+        ]).then(() => showToast('Settings saved!', 'success')).catch(() => showToast('Error saving settings', 'error'));
+    } else {
+        showToast('Settings saved locally', 'success');
+    }
+}
+
+function showVendorTab(id,el) {
+    document.querySelectorAll('#vendorMainPanel .page-content').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('#vendorSidebar .nav-item').forEach(n=>n.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if(el)el.classList.add('active');
+    if(id==='analytics')renderAnalytics();
+    if(id==='profile'){populateProfileForm(); document.getElementById('inlineLocationPicker').classList.remove('open');}
+    if(id==='settings')loadSettings();
+    if(id==='featured')renderFeaturedItems();
+    setTimeout(()=>lucide.createIcons(),50);
+}
+
+// ==================== DRIVER ====================
+function startDriverSync() {
+    if(!DRIVER_KEY)return;
+    db.ref('drivers/'+DRIVER_KEY).on('value',snap=>{driverData=snap.val();if(!driverData)return;applyDriverUI();});
+    db.ref('orders').orderByChild('driverKey').equalTo(DRIVER_KEY).on('value',snap=>{driverOrdersCache=snap.val()||{};renderDriverOrders();updateDriverStats();renderDriverDashboard();});
+}
+function applyDriverUI() {
+    const d=driverData;
+    document.getElementById('driverChipName').textContent=d.name||'Driver';
+    document.getElementById('driverSidebarName').textContent=d.name||'Driver';
+    const onlineStatus = d.onlineStatus || 'offline';
+    document.getElementById('driverSidebarStatus').textContent=onlineStatus==='online'?'Online':onlineStatus==='busy'?'On Delivery':'Offline';
+    document.getElementById('driverAvatar').textContent=(d.name||'D')[0].toUpperCase();
+    document.getElementById('driverName').value=d.name||'';
+    document.getElementById('driverPhone').value=d.phone||'';
+    document.getElementById('driverVehicle').value=d.vehicle||'motorcycle';
+    document.getElementById('driverPlate').value=d.plate||'';
+    document.getElementById('driverId').value=d.idNumber||'';
+    document.getElementById('driverZones').value=d.zones||'';
+    document.getElementById('driverProfileAvatar').textContent=(d.name||'D')[0].toUpperCase();
+    document.getElementById('driverProfileName').textContent=d.name||'Driver';
+    document.getElementById('driverProfilePhone').textContent=d.phone||'';
+    const statusBadge=document.getElementById('driverProfileStatus');
+    if(onlineStatus==='online'){statusBadge.innerHTML='<i data-lucide="circle" style="width:10px;height:10px;"></i> Online';statusBadge.style.background='var(--accent-light)';statusBadge.style.color='var(--accent-dark)';}
+    else if(onlineStatus==='busy'){statusBadge.innerHTML='<i data-lucide="circle" style="width:10px;height:10px;"></i> On Delivery';statusBadge.style.background='#fff5cc';statusBadge.style.color='#997300';}
+    else{statusBadge.innerHTML='<i data-lucide="circle" style="width:10px;height:10px;"></i> Offline';statusBadge.style.background='var(--surface2)';statusBadge.style.color='var(--dim)';}
+    lucide.createIcons();
+    renderDriverDashboard();
+}
+function updateDriverStats() {
+    const orders=Object.values(driverOrdersCache);
+    const delivered=orders.filter(o=>o.status==='delivered');
+    document.getElementById('driverTodayCount').textContent=delivered.length;
+    const earnings=delivered.reduce((s,o)=>s+(o.deliveryFee||0),0);
+    document.getElementById('driverEarnings').textContent='R'+earnings;
+    document.getElementById('driverOnTime').textContent='98%';
+}
+function renderDriverDashboard() {
+    const currentOrder=Object.values(driverOrdersCache).find(o=>o.status==='assigned'||o.status==='picked_up');
+    if(currentOrder){
+        document.getElementById('currentOrderCard').style.display='block';
+        document.getElementById('currentOrderNumber').textContent=`#${currentOrder.orderNumber||'N/A'}`;
+        // Show address clearly on driver dashboard
+        const addr = currentOrder.deliveryAddress || currentOrder.address || (currentOrder.customer && currentOrder.customer.address) || 'Address not specified';
+        document.getElementById('currentOrderAddress').textContent=addr;
+        document.getElementById('currentOrderAmount').textContent=fmtCurrency(currentOrder.total);
+        document.getElementById('currentOrderStatus').textContent=currentOrder.status==='assigned'?'Ready for pickup':'Picked up';
+    } else {
+        document.getElementById('currentOrderCard').style.display='none';
+    }
+    const recent=Object.values(driverOrdersCache).filter(o=>o.status==='delivered').sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,5);
+    const recentEl=document.getElementById('driverRecentOrdersList');
+    if(recent.length){
+        recentEl.innerHTML=recent.map(o=>{
+            const addr = o.deliveryAddress || o.address || (o.customer && o.customer.address) || 'Address not specified';
+            return `
+            <div class="driver-order-item">
+                <div class="driver-order-left">
+                    <div class="driver-order-status-dot" style="background:var(--accent);"></div>
+                    <div class="driver-order-info">
+                        <div class="order-number">#${o.orderNumber||''}</div>
+                        <div class="order-meta">${fmtTime(o.updatedAt)} · ${o.items?Object.values(o.items).length:0} items</div>
+                        <div style="font-size:0.7rem;color:var(--dim);display:flex;align-items:center;gap:4px;"><i data-lucide="map-pin" style="width:10px;"></i> ${addr}</div>
+                    </div>
+                </div>
+                <div class="driver-order-right">
+                    <div class="order-amount">${fmtCurrency(o.total)}</div>
+                    <div class="order-status">Delivered</div>
+                </div>
+            </div>`;
+        }).join('');
+    } else {
+        recentEl.innerHTML='<div class="empty-state">No recent deliveries</div>';
+    }
+}
+function renderDriverOrders() {
+    const container=document.getElementById('driverOrdersList');
+    const orders=Object.values(driverOrdersCache);
+    if(!orders.length){container.innerHTML='<div class="empty-state">No orders assigned</div>';return;}
+    container.innerHTML=orders.map(o=>{
+        const addr = o.deliveryAddress || o.address || (o.customer && o.customer.address) || 'Address not specified';
+        return `
+        <div class="driver-order-item">
+            <div class="driver-order-left">
+                <div class="driver-order-status-dot" style="background:${o.status==='delivered'?'var(--accent)':'var(--warning)'};"></div>
+                <div class="driver-order-info">
+                    <div class="order-number">#${o.orderNumber||''}</div>
+                    <div class="order-meta">${fmtDate(o.createdAt)} · ${o.items?Object.values(o.items).length:0} items</div>
+                    <div style="font-size:0.7rem;color:var(--dim);display:flex;align-items:center;gap:4px;"><i data-lucide="map-pin" style="width:10px;"></i> ${addr}</div>
+                </div>
+            </div>
+            <div class="driver-order-right">
+                <div class="order-amount">${fmtCurrency(o.total)}</div>
+                <div class="order-status">${o.status}</div>
+            </div>
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+}
+function updateDriverOnlineStatus(status) {
+    if(!DRIVER_KEY)return;
+    db.ref('drivers/'+DRIVER_KEY).update({onlineStatus:status,updatedAt:Date.now()}).then(()=>showToast(`You are now ${status}`,'success'));
+}
+function saveDriverProfile() {
+    const updates={name:document.getElementById('driverName').value,phone:document.getElementById('driverPhone').value,vehicle:document.getElementById('driverVehicle').value,plate:document.getElementById('driverPlate').value,idNumber:document.getElementById('driverId').value,zones:document.getElementById('driverZones').value,updatedAt:Date.now()};
+    db.ref('drivers/'+DRIVER_KEY).update(updates).then(()=>showToast('Profile updated','success'));
+}
+function showDriverTab(id,el) {
+    document.querySelectorAll('#driverMainPanel .driver-content').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('#driverSidebar .nav-item').forEach(n=>n.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if(el)el.classList.add('active');
+    if(id==='driverDashboard')renderDriverDashboard();
+    if(id==='driverOrders')renderDriverOrders();
+    if(id==='driverProfile')applyDriverUI();
+    setTimeout(()=>lucide.createIcons(),50);
+}
+window.markOrderPickedUp = () => { showToast('Mark as picked up - to be implemented'); };
+window.markOrderDelivered = () => { showToast('Mark as delivered - to be implemented'); };
+
+// ==================== LOGOUT ====================
+function openLogoutModal() {
+    showModal('logoutConfirmModal');
+}
+function confirmLogout() {
+    if (currentRole === 'vendor') {
+        localStorage.removeItem('vynix_vendor_session');
+        VENDOR_KEY = null;
+        document.getElementById('vendorSidebar').style.display = 'none';
+        document.getElementById('vendorMainPanel').style.display = 'none';
+    } else {
+        localStorage.removeItem('vynix_driver_session');
+        DRIVER_KEY = null;
+        document.getElementById('driverSidebar').style.display = 'none';
+        document.getElementById('driverMainPanel').style.display = 'none';
+    }
+    document.getElementById('authScreen').classList.remove('hidden');
+    setRole('vendor');
+    switchVendorTab('login');
+    hideModal('logoutConfirmModal');
+}
+
+// ==================== SESSION CHECK ====================
+(function checkSession() {
+    const vSession=JSON.parse(localStorage.getItem('vynix_vendor_session')||'null');
+    if(vSession&&vSession.key&&(Date.now()-vSession.loggedAt)<24*60*60*1000){VENDOR_KEY=vSession.key;enterVendorPortal();return;}
+    const dSession=JSON.parse(localStorage.getItem('vynix_driver_session')||'null');
+    if(dSession&&dSession.key&&(Date.now()-dSession.loggedAt)<24*60*60*1000){DRIVER_KEY=dSession.key;enterDriverPortal();}
+})();
+
+// ==================== TOAST & MODAL HELPERS ====================
+function showToast(msg,type='success') {
+    const t=document.getElementById('toast');
+    document.getElementById('toastMsg').textContent=msg;
+    t.className='toast show '+type;
+    clearTimeout(t._timer);
+    t._timer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+function showModal(id) {
+    const el=document.getElementById(id);
+    el.style.display='flex';
+    setTimeout(()=>{el.classList.add('active');lucide.createIcons();},10);
+}
+function hideModal(id) {
+    const el=document.getElementById(id);
+    el.classList.remove('active');
+    setTimeout(()=>el.style.display='none',320);
+}
+window.onclick=e=>{
+    if(e.target.classList.contains('modal-overlay'))
+        ['itemModal','deleteModal','deleteOrderModal','assignDriverModal','logoutConfirmModal','imageDeclinedModal'].forEach(id=>{const el=document.getElementById(id);if(el&&el===e.target)hideModal(id);});
+};
+
+// ==================== SIDEBAR HOVER ====================
+document.getElementById('vendorSidebar')?.addEventListener('mouseenter',(e)=>{e.currentTarget.classList.add('expanded');document.getElementById('vendorMainPanel')?.classList.add('shifted');});
+document.getElementById('vendorSidebar')?.addEventListener('mouseleave',(e)=>{e.currentTarget.classList.remove('expanded');document.getElementById('vendorMainPanel')?.classList.remove('shifted');});
+document.getElementById('driverSidebar')?.addEventListener('mouseenter',(e)=>{e.currentTarget.classList.add('expanded');document.getElementById('driverMainPanel')?.classList.add('shifted');});
+document.getElementById('driverSidebar')?.addEventListener('mouseleave',(e)=>{e.currentTarget.classList.remove('expanded');document.getElementById('driverMainPanel')?.classList.remove('shifted');});
+
+// ==================== HELPERS ====================
+function fmtDate(ts){return ts?new Date(ts).toLocaleDateString('en-ZA'):'N/A';}
+function fmtTime(ts){return ts?new Date(ts).toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}):'';}
+function fmtCurrency(v){return 'R '+Number(v||0).toFixed(2);}
+
+setInterval(()=>{
+    if(currentRole==='vendor'&&vendorData){
+        const hoursStatus=checkStoreHours();
+        const hoursBadge=document.getElementById('storeHoursBadge');
+        if(hoursBadge){hoursBadge.innerHTML=hoursStatus.isOpen?'<span class="badge badge-open"><i data-lucide="sun" style="width:12px;height:12px;"></i> OPEN</span>':'<span class="badge badge-closed"><i data-lucide="moon" style="width:12px;height:12px;"></i> CLOSED</span>';}
+        updateStoreStatusDisplay();
+        lucide.createIcons();
+    }
+},60000);
+
+lucide.createIcons();
+</script>
+</body>
+</html>
