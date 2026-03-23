@@ -152,48 +152,47 @@
         /* VENDOR MAIN */
         .main-panel { margin-left: var(--sidebar-collapsed); flex: 1; padding: 36px; max-width: calc(100% - var(--sidebar-collapsed)); transition: margin-left 0.35s cubic-bezier(0.4,0,0.2,1), max-width 0.35s cubic-bezier(0.4,0,0.2,1); }
         .main-panel.shifted { margin-left: var(--sidebar-width); max-width: calc(100% - var(--sidebar-width)); }
-        /* DRIVER SIDEBAR */
-        .driver-sidebar { width: var(--sidebar-collapsed); background: #1a2a22; border-right: 1px solid #2d3f33; padding: 24px 12px; position: fixed; height: 100vh; z-index: 100; display: flex; flex-direction: column; transition: width 0.35s cubic-bezier(0.4,0,0.2,1); overflow: hidden; color: white; }
+        /* DRIVER SIDEBAR - MODERN PROFESSIONAL UPDATES */
+        .driver-sidebar { width: var(--sidebar-collapsed); background: linear-gradient(180deg,#1a2a22,#14251c); border-right: 1px solid #2d3f33; padding: 24px 12px; position: fixed; height: 100vh; z-index: 100; display: flex; flex-direction: column; transition: width 0.35s cubic-bezier(0.4,0,0.2,1); overflow: hidden; color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
         .driver-sidebar.expanded { width: var(--sidebar-width); padding: 30px 20px; background: #14251c; }
         .driver-sidebar .logo-text { color: white; }
-        .driver-sidebar .nav-item { color: rgba(255,255,255,0.7); }
-        .driver-sidebar .nav-item:hover { background: #2d4a37; color: white; }
-        .driver-sidebar .nav-item.active { background: var(--accent); color: white; }
-        .driver-sidebar .user-profile { background: #1e3327; border-color: #2d4a37; }
-        .driver-sidebar .user-profile:hover { border-color: var(--accent); }
+        .driver-sidebar .nav-item { color: rgba(255,255,255,0.85); font-weight: 600; border-radius: 16px; padding: 14px 14px; }
+        .driver-sidebar .nav-item:hover { background: rgba(255,255,255,0.08); transform: translateX(6px); }
+        .driver-sidebar .nav-item.active { background: var(--accent); color: white; box-shadow: 0 4px 12px rgba(6,193,103,0.5); }
+        .driver-sidebar .user-profile { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); border-radius: 16px; }
         .driver-panel { margin-left: var(--sidebar-collapsed); flex: 1; padding: 36px; max-width: calc(100% - var(--sidebar-collapsed)); transition: margin-left 0.35s cubic-bezier(0.4,0,0.2,1), max-width 0.35s cubic-bezier(0.4,0,0.2,1); background: var(--bg); }
         .driver-panel.shifted { margin-left: var(--sidebar-width); max-width: calc(100% - var(--sidebar-width)); }
         .driver-content { display: none; animation: fadeIn 0.35s ease-out; }
         .driver-content.active { display: block; }
         .driver-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 28px; }
-        .driver-stat-card { background: white; padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); transition: var(--transition); }
-        .driver-stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
-        .driver-stat-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
-        .driver-stat-icon i { width: 22px; height: 22px; color: var(--accent-dark); }
-        .driver-stat-label { font-size: 0.7rem; text-transform: uppercase; color: var(--dim); font-weight: 700; letter-spacing: 0.5px; }
-        .driver-stat-value { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1.2; }
-        .driver-profile-section { background: white; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); padding: 28px; margin-bottom: 20px; }
+        .driver-stat-card { background: white; padding: 24px; border-radius: 20px; box-shadow: 0 8px 28px rgba(0,0,0,0.09); border: 1px solid var(--border); transition: var(--transition); }
+        .driver-stat-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,0.14); }
+        .driver-stat-icon { width: 48px; height: 48px; border-radius: 14px; background: var(--accent-light); display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+        .driver-stat-icon i { width: 24px; height: 24px; color: var(--accent-dark); }
+        .driver-stat-label { font-size: 0.72rem; text-transform: uppercase; color: var(--dim); font-weight: 700; letter-spacing: 0.5px; }
+        .driver-stat-value { font-size: 2.1rem; font-weight: 800; color: var(--text); line-height: 1.1; }
+        .driver-profile-section { background: white; border-radius: 20px; box-shadow: 0 8px 28px rgba(0,0,0,0.09); border: 1px solid var(--border); padding: 28px; margin-bottom: 20px; }
         .driver-profile-header { display: flex; align-items: center; gap: 20px; margin-bottom: 24px; }
-        .driver-profile-avatar { width: 70px; height: 70px; border-radius: 18px; background: linear-gradient(135deg, var(--accent), #05a357); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.8rem; flex-shrink: 0; }
-        .driver-profile-title { font-weight: 800; font-size: 1.2rem; margin-bottom: 4px; }
-        .driver-profile-sub { font-size: 0.85rem; color: var(--dim); }
-        .driver-profile-status-badge { padding: 4px 12px; border-radius: 100px; font-size: 0.7rem; font-weight: 700; background: var(--accent-light); color: var(--accent-dark); display: inline-flex; align-items: center; gap: 4px; }
+        .driver-profile-avatar { width: 72px; height: 72px; border-radius: 18px; background: linear-gradient(135deg, var(--accent), #05a357); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 2rem; flex-shrink: 0; }
+        .driver-profile-title { font-weight: 800; font-size: 1.25rem; margin-bottom: 4px; }
+        .driver-profile-sub { font-size: 0.88rem; color: var(--dim); }
+        .driver-profile-status-badge { padding: 6px 14px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; background: var(--accent-light); color: var(--accent-dark); display: inline-flex; align-items: center; gap: 6px; }
         .driver-profile-section .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .driver-profile-section .form-group { margin-bottom: 16px; }
         .driver-profile-section label { font-size: 0.75rem; font-weight: 700; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block; }
         .driver-profile-section input, .driver-profile-section select { width: 100%; padding: 12px 18px; border: 1.5px solid var(--border); border-radius: 999px !important; font-family: inherit; font-size: 0.9rem; outline: none; transition: var(--transition); background: var(--bg); color: var(--text); }
         .driver-profile-section input:focus, .driver-profile-section select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.12); background: white; }
-        .current-order-card { background: linear-gradient(135deg, #ffffff, #f8fbf9); border: 2px solid var(--accent); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow); }
+        .current-order-card { background: linear-gradient(135deg, #ffffff, #f8fbf9); border: 2px solid var(--accent); border-radius: 20px; padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 32px rgba(0,0,0,0.1); }
         .current-order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .current-order-header h3 { font-weight: 800; font-size: 1.1rem; }
-        .order-eta-badge { background: var(--accent-light); color: var(--accent-dark); padding: 6px 14px; border-radius: 100px; font-weight: 700; font-size: 0.8rem; }
-        .driver-orders-list { background: white; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
-        .driver-order-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); transition: var(--transition); position: relative; }
+        .current-order-header h3 { font-weight: 800; font-size: 1.15rem; }
+        .order-eta-badge { background: var(--accent-light); color: var(--accent-dark); padding: 6px 14px; border-radius: 100px; font-weight: 700; font-size: 0.82rem; }
+        .driver-orders-list { background: white; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 8px 28px rgba(0,0,0,0.08); }
+        .driver-order-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--border); transition: var(--transition); position: relative; }
         .driver-order-item:hover { background: #fafcfa; }
         .driver-order-item:last-child { border-bottom: none; }
         .driver-order-left { display: flex; gap: 16px; align-items: center; }
         .driver-order-status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px rgba(6,193,103,0.2); }
-        .driver-order-info .order-number { font-weight: 800; font-size: 0.9rem; margin-bottom: 2px; }
+        .driver-order-info .order-number { font-weight: 800; font-size: 0.95rem; margin-bottom: 2px; }
         .driver-order-info .order-meta { font-size: 0.78rem; color: var(--dim); display: flex; gap: 6px; }
         .driver-order-right { text-align: right; }
         .driver-order-right .order-amount { font-weight: 800; color: var(--accent); }
@@ -367,7 +366,8 @@
             .driver-panel { padding: 20px; }
         }
         /* extra style for address line */
-        .order-address { margin-top: 8px; font-size: 0.78rem; color: var(--dim); display: flex; align-items: center; gap: 4px; background: #f8f9fa; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--border); }
+        .order-address { margin-top: 8px; font-size: 0.78rem; color: var(--dim); display: flex; align-items: center; gap: 4px; background: #f8f9fa; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; transition: var(--transition); }
+        .order-address:hover { background: var(--accent-light); border-color: var(--accent); }
     </style>
 </head>
 <body>
@@ -1022,7 +1022,7 @@
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <div style="font-weight:800; font-size:1.1rem;" id="currentOrderNumber">#VYX-12345</div>
-                    <div style="color:var(--dim); font-size:0.8rem;" id="currentOrderAddress">12 Main St, Sandton</div>
+                    <div style="color:var(--dim); font-size:0.8rem;cursor:pointer;" id="currentOrderAddress" onclick="if(window.currentOrderLatLng) window.open('https://www.google.com/maps/dir/?api=1&destination=' + window.currentOrderLatLng.lat + ',' + window.currentOrderLatLng.lng,'_blank')">12 Main St, Sandton</div>
                 </div>
                 <div style="text-align:right;">
                     <div style="font-weight:800; color:var(--accent); font-size:1.1rem;" id="currentOrderAmount">R 125.00</div>
@@ -1036,7 +1036,7 @@
         </div>
         <div class="content-card" style="margin-top:20px;">
             <div class="card-header">
-                <h2><i data-lucide="history"></i> Recent Deliveries</h2>
+                <h2><i data-lucide="history"></i> Recent Deliveries <span style="font-size:0.75rem;color:var(--dim);font-weight:500;margin-left:8px;">(last 7 days)</span></h2>
                 <button class="btn btn-edit" onclick="showDriverTab('driverOrders',document.querySelector('#driverSidebar .nav-item')[1])">View All</button>
             </div>
             <div id="driverRecentOrdersList" style="max-height:300px; overflow-y:auto;">
@@ -1803,14 +1803,19 @@ function renderOrders() {
                 ${customerPhone?`<span style="font-size:0.72rem;color:var(--dim);font-weight:600;">📞 ${customerPhone}</span>`:''}
             </div>
         </div>`;
-        // ADDRESS DISPLAY (vendor sees full delivery address)
+        // ADDRESS DISPLAY WITH GOOGLE MAPS LINK (customer location)
         const deliveryAddr = o.deliveryAddress || o.address || (o.customer && o.customer.address) || null;
-        const addressHtml = deliveryAddr ? `
-            <div class="order-address">
-                <i data-lucide="map-pin" style="width:14px;height:14px;"></i>
-                <span>${deliveryAddr}</span>
-            </div>
-        ` : '';
+        let addressHtml = '';
+        if (deliveryAddr) {
+            const mapLink = (o.deliveryLat && o.deliveryLng) ? ` onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${o.deliveryLat},${o.deliveryLng}','_blank')" style="cursor:pointer;"` : '';
+            addressHtml = `
+                <div class="order-address"${mapLink}>
+                    <i data-lucide="map-pin" style="width:14px;height:14px;"></i>
+                    <span>${deliveryAddr}</span>
+                    ${o.deliveryLat ? '<span style="margin-left:6px;font-size:0.7rem;color:var(--accent);">🗺️</span>' : ''}
+                </div>
+            `;
+        }
         const driverBanner = o.driverKey
             ? `<div style="margin-top:10px;padding:8px 14px;background:linear-gradient(90deg,var(--accent-light),#f0fdf4);border:1px solid var(--accent);border-radius:10px;display:flex;align-items:center;gap:8px;font-size:0.82rem;font-weight:700;color:var(--accent-dark);">
                 <i data-lucide="bike" style="width:16px;height:16px;flex-shrink:0;"></i> Assigned to: ${o.driverName||'Driver'}
@@ -2237,9 +2242,11 @@ function renderDriverDashboard() {
     if(currentOrder){
         document.getElementById('currentOrderCard').style.display='block';
         document.getElementById('currentOrderNumber').textContent=`#${currentOrder.orderNumber||'N/A'}`;
-        // Show address clearly on driver dashboard
         const addr = currentOrder.deliveryAddress || currentOrder.address || (currentOrder.customer && currentOrder.customer.address) || 'Address not specified';
-        document.getElementById('currentOrderAddress').textContent=addr;
+        const mapLink = (currentOrder.deliveryLat && currentOrder.deliveryLng) ? ` onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${currentOrder.deliveryLat},${currentOrder.deliveryLng}','_blank')"` : '';
+        window.currentOrderLatLng = {lat: currentOrder.deliveryLat, lng: currentOrder.deliveryLng};
+        document.getElementById('currentOrderAddress').innerHTML = `${addr} ${currentOrder.deliveryLat ? '<span style="font-size:0.7rem;color:var(--accent);margin-left:6px;">🗺️</span>' : ''}`;
+        document.getElementById('currentOrderAddress').style.cursor = currentOrder.deliveryLat ? 'pointer' : 'default';
         document.getElementById('currentOrderAmount').textContent=fmtCurrency(currentOrder.total);
         document.getElementById('currentOrderStatus').textContent=currentOrder.status==='assigned'?'Ready for pickup':'Picked up';
     } else {
@@ -2250,6 +2257,7 @@ function renderDriverDashboard() {
     if(recent.length){
         recentEl.innerHTML=recent.map(o=>{
             const addr = o.deliveryAddress || o.address || (o.customer && o.customer.address) || 'Address not specified';
+            const mapLink = (o.deliveryLat && o.deliveryLng) ? ` onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${o.deliveryLat},${o.deliveryLng}','_blank')"` : '';
             return `
             <div class="driver-order-item">
                 <div class="driver-order-left">
@@ -2257,7 +2265,7 @@ function renderDriverDashboard() {
                     <div class="driver-order-info">
                         <div class="order-number">#${o.orderNumber||''}</div>
                         <div class="order-meta">${fmtTime(o.updatedAt)} · ${o.items?Object.values(o.items).length:0} items</div>
-                        <div style="font-size:0.7rem;color:var(--dim);display:flex;align-items:center;gap:4px;"><i data-lucide="map-pin" style="width:10px;"></i> ${addr}</div>
+                        <div style="font-size:0.7rem;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer;"${mapLink}><i data-lucide="map-pin" style="width:10px;"></i> ${addr}</div>
                     </div>
                 </div>
                 <div class="driver-order-right">
@@ -2279,6 +2287,7 @@ function renderDriverOrders() {
     }
     container.innerHTML = orders.map(([key, o]) => {
         const addr = o.deliveryAddress || o.address || (o.customer && o.customer.address) || 'Address not specified';
+        const mapLink = (o.deliveryLat && o.deliveryLng) ? ` onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${o.deliveryLat},${o.deliveryLng}','_blank')"` : '';
         return `
         <div class="driver-order-item" style="cursor:pointer;">
             <div class="driver-order-left">
@@ -2286,7 +2295,7 @@ function renderDriverOrders() {
                 <div class="driver-order-info">
                     <div class="order-number">#${o.orderNumber||key.slice(-6).toUpperCase()}</div>
                     <div class="order-meta">${fmtDate(o.createdAt)} · ${o.items ? Object.values(o.items).length : 0} items</div>
-                    <div style="font-size:0.7rem;color:var(--dim);display:flex;align-items:center;gap:4px;"><i data-lucide="map-pin" style="width:10px;"></i> ${addr}</div>
+                    <div style="font-size:0.7rem;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer;"${mapLink}><i data-lucide="map-pin" style="width:10px;"></i> ${addr}</div>
                 </div>
             </div>
             <div class="driver-order-right">
