@@ -365,7 +365,6 @@
             .categories-checkbox-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
             .driver-panel { padding: 20px; }
         }
-        /* extra style for address line */
         .order-address { margin-top: 8px; font-size: 0.78rem; color: var(--dim); display: flex; align-items: center; gap: 4px; background: #f8f9fa; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; transition: var(--transition); }
         .order-address:hover { background: var(--accent-light); border-color: var(--accent); }
     </style>
@@ -1327,6 +1326,9 @@ function updateVendorDots(step) {
     }
 }
 async function vendorLogin() {
+    // Clear any driver session to avoid mixing
+    localStorage.removeItem('vynix_driver_session');
+    DRIVER_KEY = null;
     const vendorId = document.getElementById('vendorLoginId').value.trim().toUpperCase();
     const err = document.getElementById('vendorLoginError');
     const btn = document.getElementById('vendorLoginBtn');
@@ -1407,6 +1409,9 @@ async function registerDriver() {
     } finally { btn.disabled = false; }
 }
 async function driverLogin() {
+    // Clear vendor session
+    localStorage.removeItem('vynix_vendor_session');
+    VENDOR_KEY = null;
     const phone = document.getElementById('driverLoginPhone').value.trim();
     const err = document.getElementById('driverLoginError');
     const btn = document.getElementById('driverLoginBtn');
@@ -1431,6 +1436,8 @@ async function driverLogin() {
 }
 // ==================== PORTAL ENTRY ====================
 function enterVendorPortal() {
+    document.getElementById('driverSidebar').style.display = 'none';
+    document.getElementById('driverMainPanel').style.display = 'none';
     document.getElementById('authScreen').classList.add('hidden');
     showShimmer();
     startVendorSync();
@@ -1442,6 +1449,8 @@ function enterVendorPortal() {
     }, 1500);
 }
 function enterDriverPortal() {
+    document.getElementById('vendorSidebar').style.display = 'none';
+    document.getElementById('vendorMainPanel').style.display = 'none';
     document.getElementById('authScreen').classList.add('hidden');
     showShimmer();
     startDriverSync();
@@ -1457,16 +1466,13 @@ function hideShimmer() {
     sh.classList.add('fade-out');
     setTimeout(() => { sh.style.display = 'none'; sh.classList.remove('fade-out'); }, 600);
 }
-// ==================== VENDOR NOTIFICATIONS LISTENER (for image declines) - REMOVED AUTOMATIC MODAL ====================
-// Instead, we will show decline reason when vendor clicks on the item's warning icon
+// ==================== VENDOR NOTIFICATIONS LISTENER ====================
 function fetchApprovedDrivers() {
     db.ref('drivers').orderByChild('status').equalTo('active').on('value', snap => {
         const data = snap.val();
         if (data) {
             approvedDrivers = Object.entries(data).map(([key, val]) => {
-                const name = val.name
-                    || ((val.firstName || '') + (val.lastName ? ' ' + val.lastName : '')).trim()
-                    || 'Unnamed Driver';
+                const name = val.name || ((val.firstName || '') + (val.lastName ? ' ' + val.lastName : '')).trim() || 'Unnamed Driver';
                 const vehicle = val.vehicle || val.vehicleType || 'Unknown vehicle';
                 const plate = val.plate || val.vehicleDesc || '';
                 const phone = val.phone || '';
@@ -1789,7 +1795,7 @@ function renderOrders() {
                 const menuMatch=Object.values(menuCache).find(m=>m.name===item.name);
                 const imgURL=(menuMatch&&menuMatch.imageApproved&&menuMatch.imageURL)?menuMatch.imageURL:(item.imageURL||'');
                 const qty=item.quantity||item.qty||1;
-                const imgEl=imgURL?`<img src="${imgURL}" class="order-item-chip-img" alt="${item.name||''}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'' ;
+                const imgEl=imgURL?`<img src="${imgURL}" class="order-item-chip-img" alt="${item.name||''}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'';
                 const placeholderEl=`<div class="order-item-chip-placeholder" ${imgURL?'style="display:none;"':''}>🍽</div>`;
                 return`<div class="order-item-chip">${imgEl}${placeholderEl}<div class="order-item-chip-info"><span class="order-item-chip-name">${item.name||'Item'}</span><span class="order-item-chip-qty">×${qty}</span></div></div>`;
             }).join('');
@@ -2233,9 +2239,16 @@ function updateDriverStats() {
     const orders=Object.values(driverOrdersCache);
     const delivered=orders.filter(o=>o.status==='delivered');
     document.getElementById('driverTodayCount').textContent=delivered.length;
-    const earnings=delivered.reduce((s,o)=>s+(o.deliveryFee||0),0);
-    document.getElementById('driverEarnings').textContent='R'+earnings;
+    if (DRIVER_KEY) {
+        db.ref(`drivers/${DRIVER_KEY}/totalEarnings`).once('value', snap => {
+            const earnings = snap.val() || 0;
+            document.getElementById('driverEarnings').innerHTML = `R${earnings}`;
+        });
+    } else {
+        document.getElementById('driverEarnings').innerHTML = 'R0';
+    }
     document.getElementById('driverOnTime').textContent='98%';
+    document.getElementById('driverRating').textContent='4.8';
 }
 function renderDriverDashboard() {
     const currentOrder=Object.values(driverOrdersCache).find(o=>o.status==='assigned'||o.status==='picked_up');
@@ -2243,12 +2256,33 @@ function renderDriverDashboard() {
         document.getElementById('currentOrderCard').style.display='block';
         document.getElementById('currentOrderNumber').textContent=`#${currentOrder.orderNumber||'N/A'}`;
         const addr = currentOrder.deliveryAddress || currentOrder.address || (currentOrder.customer && currentOrder.customer.address) || 'Address not specified';
-        const mapLink = (currentOrder.deliveryLat && currentOrder.deliveryLng) ? ` onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${currentOrder.deliveryLat},${currentOrder.deliveryLng}','_blank')"` : '';
-        window.currentOrderLatLng = {lat: currentOrder.deliveryLat, lng: currentOrder.deliveryLng};
-        document.getElementById('currentOrderAddress').innerHTML = `${addr} ${currentOrder.deliveryLat ? '<span style="font-size:0.7rem;color:var(--accent);margin-left:6px;">🗺️</span>' : ''}`;
-        document.getElementById('currentOrderAddress').style.cursor = currentOrder.deliveryLat ? 'pointer' : 'default';
+        const lat = currentOrder.deliveryLat;
+        const lng = currentOrder.deliveryLng;
+        let mapLink = '#';
+        if (lat && lng) mapLink = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+        else if (addr !== 'Address not specified') mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
+        window.currentOrderLatLng = {lat, lng};
+        const addressHtml = `<div style="display:flex;align-items:center;gap:6px;cursor:pointer;" onclick="window.open('${mapLink}','_blank')"><i data-lucide="map-pin" style="width:14px;"></i> ${addr} <i data-lucide="external-link" style="width:12px;"></i></div>`;
+        document.getElementById('currentOrderAddress').innerHTML = addressHtml;
+        document.getElementById('currentOrderAddress').style.cursor = 'pointer';
         document.getElementById('currentOrderAmount').textContent=fmtCurrency(currentOrder.total);
-        document.getElementById('currentOrderStatus').textContent=currentOrder.status==='assigned'?'Ready for pickup':'Picked up';
+        const statusText = currentOrder.status === 'assigned' ? 'Ready for pickup' : 'Out for delivery';
+        document.getElementById('currentOrderStatus').textContent=statusText;
+        const customer = currentOrder.customer || {};
+        const customerName = customer.name || currentOrder.customerName || 'Customer';
+        const customerPhone = customer.phone || currentOrder.customerPhone || '';
+        let customerInfoDiv = document.getElementById('currentOrderCustomerInfo');
+        if (!customerInfoDiv) {
+            const headerDiv = document.querySelector('#currentOrderCard .current-order-header');
+            if (headerDiv) {
+                customerInfoDiv = document.createElement('div');
+                customerInfoDiv.id = 'currentOrderCustomerInfo';
+                headerDiv.insertAdjacentElement('afterend', customerInfoDiv);
+            }
+        }
+        if (customerInfoDiv) {
+            customerInfoDiv.innerHTML = `<div style="margin-top:12px;padding-top:8px;border-top:1px solid var(--border);font-size:0.85rem;"><span style="font-weight:700;">👤 ${customerName}</span> ${customerPhone ? `<span style="margin-left:12px;">📞 ${customerPhone}</span>` : ''}</div>`;
+        }
     } else {
         document.getElementById('currentOrderCard').style.display='none';
     }
@@ -2256,27 +2290,30 @@ function renderDriverDashboard() {
     const recentEl=document.getElementById('driverRecentOrdersList');
     if(recent.length){
         recentEl.innerHTML=recent.map(o=>{
-            const addr = o.deliveryAddress || o.address || (o.customer && o.customer.address) || 'Address not specified';
-            const mapLink = (o.deliveryLat && o.deliveryLng) ? ` onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${o.deliveryLat},${o.deliveryLng}','_blank')"` : '';
+            const addr = o.deliveryAddress || o.address || (o.customer && o.customer.address) || 'Address';
+            const lat = o.deliveryLat;
+            const lng = o.deliveryLng;
+            let mapLink = '#';
+            if (lat && lng) mapLink = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+            else if (addr !== 'Address') mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
+            const customerName = (o.customer?.name) || o.customerName || 'Customer';
             return `
-            <div class="driver-order-item">
-                <div class="driver-order-left">
-                    <div class="driver-order-status-dot" style="background:var(--accent);"></div>
-                    <div class="driver-order-info">
-                        <div class="order-number">#${o.orderNumber||''}</div>
-                        <div class="order-meta">${fmtTime(o.updatedAt)} · ${o.items?Object.values(o.items).length:0} items</div>
-                        <div style="font-size:0.7rem;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer;"${mapLink}><i data-lucide="map-pin" style="width:10px;"></i> ${addr}</div>
-                    </div>
+            <div class="driver-order-item" style="flex-direction:column;align-items:flex-start;gap:8px;">
+                <div style="display:flex;width:100%;justify-content:space-between;">
+                    <div><strong>#${o.orderNumber||''}</strong> <span class="badge badge-delivered" style="background:var(--accent-light);color:var(--accent-dark);">Delivered</span></div>
+                    <div>${fmtTime(o.updatedAt)}</div>
                 </div>
-                <div class="driver-order-right">
-                    <div class="order-amount">${fmtCurrency(o.total)}</div>
-                    <div class="order-status">Delivered</div>
+                <div style="display:flex;gap:12px;align-items:center;width:100%;flex-wrap:wrap;">
+                    <span>👤 ${customerName}</span>
+                    <div style="display:flex;align-items:center;gap:4px;cursor:pointer;" onclick="window.open('${mapLink}','_blank')"><i data-lucide="map-pin" style="width:12px;"></i> ${addr.substring(0,40)}...</div>
                 </div>
+                <div style="font-weight:700;">${fmtCurrency(o.total)}</div>
             </div>`;
         }).join('');
     } else {
         recentEl.innerHTML='<div class="empty-state">No recent deliveries</div>';
     }
+    lucide.createIcons();
 }
 function renderDriverOrders() {
     const container=document.getElementById('driverOrdersList');
@@ -2286,26 +2323,79 @@ function renderDriverOrders() {
         return;
     }
     container.innerHTML = orders.map(([key, o]) => {
-        const addr = o.deliveryAddress || o.address || (o.customer && o.customer.address) || 'Address not specified';
-        const mapLink = (o.deliveryLat && o.deliveryLng) ? ` onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${o.deliveryLat},${o.deliveryLng}','_blank')"` : '';
+        const customer = o.customer || o.user || {};
+        const customerName = customer.name || customer.displayName || o.customerName || 'Customer';
+        const customerPhone = customer.phone || o.customerPhone || '';
+        const customerEmail = customer.email || o.customerEmail || '';
+        const address = o.deliveryAddress || o.address || (customer.address) || 'Address not provided';
+        const lat = o.deliveryLat;
+        const lng = o.deliveryLng;
+        let mapLink = '#';
+        if (lat && lng) mapLink = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+        else if (address !== 'Address not provided') mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+        
+        const orderItems = o.items ? Object.values(o.items) : [];
+        let itemsHTML = '';
+        if(orderItems.length){
+            const chips = orderItems.map(item => {
+                const menuMatch = Object.values(menuCache || {}).find(m => m.name === item.name);
+                const imgURL = (menuMatch && menuMatch.imageApproved && menuMatch.imageURL) ? menuMatch.imageURL : (item.imageURL || '');
+                const qty = item.quantity || item.qty || 1;
+                const imgEl = imgURL ? `<img src="${imgURL}" class="order-item-chip-img" alt="${item.name||''}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : '';
+                const placeholderEl = `<div class="order-item-chip-placeholder" ${imgURL ? 'style="display:none;"' : ''}>🍽</div>`;
+                return `<div class="order-item-chip">${imgEl}${placeholderEl}<div class="order-item-chip-info"><span class="order-item-chip-name">${item.name||'Item'}</span><span class="order-item-chip-qty">×${qty}</span></div></div>`;
+            }).join('');
+            itemsHTML = `<div class="order-items-strip">${chips}</div>`;
+        }
+        
+        const statusColors = {
+            assigned: { bg: '#e0f2fe', color: '#0369a1', text: 'Assigned' },
+            picked_up: { bg: '#fff0d4', color: '#c46b00', text: 'Picked Up' },
+            delivered: { bg: 'var(--accent-light)', color: 'var(--accent-dark)', text: 'Delivered' },
+            cancelled: { bg: '#fff1f0', color: 'var(--danger)', text: 'Cancelled' }
+        };
+        const sc = statusColors[o.status] || { bg: 'var(--surface2)', color: 'var(--dim)', text: o.status };
+        
+        let actionButtons = '';
+        if (o.status === 'assigned') {
+            actionButtons = `<button class="btn btn-success" style="margin-top:12px;width:100%;" onclick="markOrderPickedUp()"><i data-lucide="bike" style="width:14px;"></i> Picked Up</button>`;
+        } else if (o.status === 'picked_up') {
+            actionButtons = `<button class="btn btn-primary" style="margin-top:12px;width:100%;background:var(--accent);" onclick="markOrderDelivered()"><i data-lucide="check-circle" style="width:14px;"></i> Delivered</button>`;
+        }
+        
         return `
-        <div class="driver-order-item" style="cursor:pointer;">
-            <div class="driver-order-left">
-                <div class="driver-order-status-dot" style="background:${o.status==='delivered'?'var(--accent)':'var(--warning)'};"></div>
-                <div class="driver-order-info">
-                    <div class="order-number">#${o.orderNumber||key.slice(-6).toUpperCase()}</div>
-                    <div class="order-meta">${fmtDate(o.createdAt)} · ${o.items ? Object.values(o.items).length : 0} items</div>
-                    <div style="font-size:0.7rem;color:var(--dim);display:flex;align-items:center;gap:4px;cursor:pointer;"${mapLink}><i data-lucide="map-pin" style="width:10px;"></i> ${addr}</div>
+            <div class="order-card" style="margin-bottom:12px;border-radius:20px;background:white;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                            <span style="font-weight:800;font-size:0.95rem;">Order #${o.orderNumber || key.slice(-6).toUpperCase()}</span>
+                            <span style="background:${sc.bg};color:${sc.color};border-radius:10px;font-size:0.72rem;font-weight:700;padding:4px 10px;">${sc.text}</span>
+                        </div>
+                        <div style="color:var(--dim);font-size:0.78rem;margin-top:2px;">${fmtDate(o.createdAt)} at ${fmtTime(o.createdAt)}</div>
+                        <div class="order-customer-bar" style="margin-top:10px;">
+                            <div class="order-customer-avatar">${customerName.charAt(0).toUpperCase()}</div>
+                            <div class="order-customer-details">
+                                <span class="order-customer-name">👤 ${customerName}</span>
+                                ${customerPhone ? `<span class="order-customer-id">📞 ${customerPhone}</span>` : ''}
+                                ${customerEmail ? `<span style="font-size:0.72rem;color:var(--dim);font-weight:600;">📧 ${customerEmail}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="order-address" onclick="window.open('${mapLink}','_blank')" style="cursor:pointer;margin-top:8px;background:var(--bg);padding:8px 12px;border-radius:12px;display:flex;align-items:center;gap:6px;">
+                            <i data-lucide="map-pin" style="width:14px;height:14px;"></i>
+                            <span>${address}</span>
+                            <i data-lucide="external-link" style="width:12px;height:12px;margin-left:auto;opacity:0.6;"></i>
+                        </div>
+                        ${itemsHTML}
+                    </div>
+                    <div style="text-align:right;flex-shrink:0;">
+                        <div style="font-weight:800;font-size:1.1rem;color:var(--accent);">${fmtCurrency(o.total)}</div>
+                        ${orderItems.length ? `<div style="font-size:0.76rem;color:var(--dim);margin-top:2px;">${orderItems.length} item${orderItems.length!==1?'s':''}</div>` : ''}
+                        <button class="icon-btn icon-btn-delete" onclick="event.stopPropagation(); openDeleteOrderModal('${key}','${o.orderNumber || key.slice(-6).toUpperCase()}');" style="margin-top:8px;width:auto;padding:5px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:4px;"><i data-lucide="trash-2" style="width:12px;height:12px;"></i> Delete</button>
+                    </div>
                 </div>
+                ${actionButtons}
             </div>
-            <div class="driver-order-right">
-                <div class="order-amount">${fmtCurrency(o.total)}</div>
-                <div class="order-status">${o.status}</div>
-            </div>
-            <button class="icon-btn icon-btn-delete" onclick="event.stopImmediatePropagation(); openDeleteOrderModal('${key}', '${o.orderNumber || key.slice(-6).toUpperCase()}');" style="position:absolute;right:16px;top:16px;">
-                <i data-lucide="trash-2" style="width:13px;height:13px;"></i>
-            </button>
-        </div>`;
+        `;
     }).join('');
     lucide.createIcons();
 }
@@ -2327,8 +2417,35 @@ function showDriverTab(id,el) {
     if(id==='driverProfile')applyDriverUI();
     setTimeout(()=>lucide.createIcons(),50);
 }
-window.markOrderPickedUp = () => { showToast('Mark as picked up - to be implemented'); };
-window.markOrderDelivered = () => { showToast('Mark as delivered - to be implemented'); };
+window.markOrderPickedUp = async function() {
+    const activeOrder = Object.entries(driverOrdersCache).find(([_, o]) => o.status === 'assigned');
+    if (!activeOrder) { showToast('No order ready for pickup', 'error'); return; }
+    const [orderKey, order] = activeOrder;
+    try {
+        await db.ref(`orders/${orderKey}`).update({ status: 'picked_up', updatedAt: Date.now() });
+        await db.ref(`drivers/${DRIVER_KEY}`).update({ onlineStatus: 'busy', updatedAt: Date.now() });
+        showToast('Order marked as picked up, navigate to customer', 'success');
+        renderDriverDashboard();
+        renderDriverOrders();
+    } catch(e) { showToast('Update failed', 'error'); }
+};
+window.markOrderDelivered = async function() {
+    const activeOrder = Object.entries(driverOrdersCache).find(([_, o]) => o.status === 'picked_up');
+    if (!activeOrder) { showToast('No order in delivery', 'error'); return; }
+    const [orderKey, order] = activeOrder;
+    const deliveryFee = order.deliveryFee || 35;
+    try {
+        await db.ref(`orders/${orderKey}`).update({ status: 'delivered', deliveredAt: Date.now(), updatedAt: Date.now() });
+        const driverRef = db.ref(`drivers/${DRIVER_KEY}`);
+        const snapshot = await driverRef.once('value');
+        const currentEarnings = snapshot.val()?.totalEarnings || 0;
+        await driverRef.update({ totalEarnings: currentEarnings + deliveryFee, onlineStatus: 'online', updatedAt: Date.now() });
+        showToast(`Delivered! +R${deliveryFee} earnings`, 'success');
+        updateDriverStats();
+        renderDriverDashboard();
+        renderDriverOrders();
+    } catch(e) { showToast('Failed to complete delivery', 'error'); }
+};
 // ==================== LOGOUT ====================
 function openLogoutModal() {
     showModal('logoutConfirmModal');
@@ -2353,9 +2470,14 @@ function confirmLogout() {
 // ==================== SESSION CHECK ====================
 (function checkSession() {
     const vSession=JSON.parse(localStorage.getItem('vynix_vendor_session')||'null');
-    if(vSession&&vSession.key&&(Date.now()-vSession.loggedAt)<24*60*60*1000){VENDOR_KEY=vSession.key;enterVendorPortal();return;}
     const dSession=JSON.parse(localStorage.getItem('vynix_driver_session')||'null');
-    if(dSession&&dSession.key&&(Date.now()-dSession.loggedAt)<24*60*60*1000){DRIVER_KEY=dSession.key;enterDriverPortal();}
+    if (vSession && vSession.key && (Date.now()-vSession.loggedAt)<24*60*60*1000) {
+        VENDOR_KEY=vSession.key;
+        enterVendorPortal();
+    } else if (dSession && dSession.key && (Date.now()-dSession.loggedAt)<24*60*60*1000) {
+        DRIVER_KEY=dSession.key;
+        enterDriverPortal();
+    }
 })();
 // ==================== TOAST & MODAL HELPERS ====================
 function showToast(msg,type='success') {
